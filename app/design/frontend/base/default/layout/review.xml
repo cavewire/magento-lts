@@ -116,13 +116,14 @@ Product reviews page
         </reference>
     </review_product_view>
 
-    <review_customer_index translate="label">
+    <!-- TODO:MH Mitch Removed and replaced with CaveShare Review module -->
+    <!-- review_customer_index translate="label">
         <label>Customer My Account Product Reviews</label>
         <update handle="customer_account"/>
         <reference name="my.account.wrapper">
             <block type="review/customer_list" name="review_customer_list" template="review/customer/list.phtml"/>
         </reference>
-    </review_customer_index>
+    </review_customer_index -->
 
     <review_customer_view translate="label">
         <label>Customer My Account Review Details</label>
