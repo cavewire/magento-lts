@@ -244,7 +244,6 @@ class Mage_Checkout_Block_Cart_Item_Renderer extends Mage_Core_Block_Template
 
         $params = array(
             'id' => $this->getItem()->getId(),
-            Mage_Core_Controller_Front_Action::PARAM_NAME_URL_ENCODED => $this->helper('core/url')->getEncodedUrl(),
         );
         if ($addFormKey) {
             $params[Mage_Core_Model_Url::FORM_KEY] = Mage::getSingleton('core/session')->getFormKey();
