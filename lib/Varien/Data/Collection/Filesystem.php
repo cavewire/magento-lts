@@ -81,14 +81,14 @@ class Varien_Data_Collection_Filesystem extends Varien_Data_Collection
      *
      * @var string
      */
-    protected $_allowedDirsMask  = '/^[a-z0-9\.\-\_]+$/i';
+    protected $_allowedDirsMask  = '/^[a-z0-9\.\-\_ ]+$/i';
 
     /**
      * Filenames regex pre-filter
      *
      * @var string
      */
-    protected $_allowedFilesMask = '/^[a-z0-9\.\-\_]+\.[a-z0-9]+$/i';
+    protected $_allowedFilesMask = '/^[a-z0-9\.\-\_ ]+\.[a-z0-9]+$/i';
 
     /**
      * Disallowed filenames regex pre-filter match for better versatility
