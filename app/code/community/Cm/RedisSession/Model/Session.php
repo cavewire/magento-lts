@@ -94,6 +94,8 @@ class Cm_RedisSession_Model_Session extends Mage_Core_Model_Mysql4_Session
     protected $_sessionWrites; // set expire time based on activity
     protected $_maxLifetime;
     protected $_minLifetime;
+    protected $_sessionPrefix;
+
 
     static public $failedLockAttempts = 0; // for debug or informational purposes
 
@@ -119,6 +121,7 @@ class Cm_RedisSession_Model_Session extends Mage_Core_Model_Mysql4_Session
         $timeout =      ((float) $config->descend('timeout') ?: self::DEFAULT_TIMEOUT);
         $persistent =  ((string) $config->descend('persistent') ?: '');
         $this->_dbNum =   ((int) $config->descend('db') ?: 0);
+        $this->_sessionPrefix  = ((string) $config->descend('site').'_sess_') ?: 'sess_';
 
         // General config
         $this->_compressionThreshold =  ((int) $config->descend('compression_threshold') ?: self::DEFAULT_COMPRESSION_THRESHOLD);
@@ -198,7 +201,7 @@ class Cm_RedisSession_Model_Session extends Mage_Core_Model_Mysql4_Session
         Varien_Profiler::start(__METHOD__);
 
         // Get lock on session. Increment the "lock" field and if the new value is 1, we have the lock.
-        $sessionId = self::SESSION_PREFIX.$sessionId;
+        $sessionId = $this->_sessionPrefix . $sessionId;
         $tries = $waiting = $lock = 0;
         $lockPid = $oldLockPid = NULL; // Restart waiting for lock when current lock holder changes
         $detectZombies = FALSE;
@@ -415,7 +418,7 @@ class Cm_RedisSession_Model_Session extends Mage_Core_Model_Mysql4_Session
             if($this->_dbNum) $this->_redis->select($this->_dbNum);  // Prevent conflicts with other connections?
 
             if ( ! $this->_useLocking
-              || ( ! ($pid = $this->_redis->hGet('sess_'.$sessionId, 'pid')) || $pid == $this->_getPid())
+              || ( ! ($pid = $this->_redis->hGet($this->_sessionPrefix . $sessionId, 'pid')) || $pid == $this->_getPid())
             ) {
                 $this->_writeRawSession($sessionId, $sessionData, $this->getLifeTime());
                 if ($this->_logLevel >= Zend_Log::DEBUG) {
@@ -465,7 +468,7 @@ class Cm_RedisSession_Model_Session extends Mage_Core_Model_Mysql4_Session
         }
         $this->_redis->pipeline();
         if($this->_dbNum) $this->_redis->select($this->_dbNum);
-        $this->_redis->del(self::SESSION_PREFIX.$sessionId);
+        $this->_redis->del($this->_sessionPrefix.$sessionId);
         $this->_redis->exec();
         Varien_Profiler::stop(__METHOD__);
         return TRUE;
@@ -622,7 +625,7 @@ class Cm_RedisSession_Model_Session extends Mage_Core_Model_Mysql4_Session
             throw new Exception('Not connected to redis!');
         }
 
-        $sessionId = 'sess_' . $id;
+        $sessionId = $this->_sessionPrefix . $id;
         $this->_redis->pipeline()
             ->select($this->_dbNum)
             ->hMSet($sessionId, array(
@@ -645,7 +648,7 @@ class Cm_RedisSession_Model_Session extends Mage_Core_Model_Mysql4_Session
             throw new Exception('Not connected to redis!');
         }
 
-        $sessionId = strpos($id, 'sess_') === 0 ? $id : 'sess_' . $id;
+        $sessionId = strpos($id, $this->_sessionPrefix) === 0 ? $id : $this->_sessionPrefix . $id;
         $this->_redis->select($this->_dbNum);
         $data = $this->_redis->hGetAll($sessionId);
         if ($data && isset($data['data'])) {
