@@ -214,7 +214,11 @@ class Mage_Catalog_Model_Product_Option_Type_Default extends Varien_Object
      */
     public function validateUserValue($values)
     {
-        Mage::getSingleton('checkout/session')->setUseNotice(false);
+        // Check if its a web request... no reason for session otherwise
+        // Exception: Warning: session_set_save_handler(): Cannot change save handler when headers already sent  in /app/code/core/Mage/Core/Model/Resource/Session.php on line 158
+        if (http_response_code()) {
+            Mage::getSingleton('checkout/session')->setUseNotice(false);
+        }
 
         $this->setIsValid(false);
 
