@@ -907,7 +907,7 @@ final class Mage
      *
      * @param Exception $e
      */
-    public static function logException(Exception $e)
+    public static function logException(\Throwable $e)
     {
         if (!self::getConfig()) {
             return;
