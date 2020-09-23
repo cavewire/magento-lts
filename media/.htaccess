@@ -11,15 +11,15 @@ Options -ExecCGI
 ############################################
 ## enable rewrites
 
-    Options +FollowSymLinks
-    RewriteEngine on
+    # Options +FollowSymLinks
+    # RewriteEngine on
 
 ############################################
 ## never rewrite for existing files
-    RewriteCond %{REQUEST_FILENAME} !-f
+    # RewriteCond %{REQUEST_FILENAME} !-f
 
 ############################################
 ## rewrite everything else to get.php
 
-    RewriteRule .* ../get.php [L]
+    # RewriteRule .* ../get.php [L]
 </IfModule>

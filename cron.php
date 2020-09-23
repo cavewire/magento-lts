@@ -74,6 +74,9 @@ try {
         }
     }
 
+        //TODO:CG Added, set default store as a lot of magento needs it.
+        Mage::app()->setCurrentStore(Mage_Core_Model_App::ADMIN_STORE_ID);
+
     Mage::getConfig()->init()->loadEventObservers('crontab');
     Mage::app()->addEventArea('crontab');
     if ($isShellDisabled) {
