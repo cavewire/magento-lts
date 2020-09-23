@@ -37,7 +37,8 @@ class Mage_Adminhtml_Block_Checkout_Formkey extends Mage_Adminhtml_Block_Templat
      */
     public function canShow()
     {
-        return !Mage::getStoreConfigFlag('admin/security/validate_formkey_checkout');
+        return false; //TODO:CG: This is just till we actually implement Formkey Val. People freak out if they see warnings.
+        // return !Mage::getStoreConfigFlag('admin/security/validate_formkey_checkout');
     }
 
     /**
