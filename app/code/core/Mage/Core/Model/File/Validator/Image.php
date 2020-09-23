@@ -88,6 +88,12 @@ class Mage_Core_Model_File_Validator_Image
      */
     public function validate($filePath)
     {
+        //TODO:CG Just hacked this in to allow pdf upload to wysiwyg. Not vital, does not matter if lost in upgrade.
+        if (mime_content_type($filePath) == 'application/pdf') {
+            return null;
+        }
+        //END CG HACK
+
         list($imageWidth, $imageHeight, $fileType) = getimagesize($filePath);
         if ($fileType) {
             if ($this->isImageType($fileType)) {
