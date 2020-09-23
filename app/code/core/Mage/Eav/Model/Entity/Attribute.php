@@ -53,7 +53,7 @@ class Mage_Eav_Model_Entity_Attribute extends Mage_Eav_Model_Entity_Attribute_Ab
      */
     protected $_eventPrefix                         = 'eav_entity_attribute';
 
-    const ATTRIBUTE_CODE_MAX_LENGTH                 = 30;
+    const ATTRIBUTE_CODE_MAX_LENGTH                 = 40;
 
     /**
      * Parameter name in event
