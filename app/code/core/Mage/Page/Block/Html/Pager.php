@@ -387,6 +387,7 @@ class Mage_Page_Block_Html_Pager extends Mage_Core_Block_Template
         $urlParams['_current']  = true;
         $urlParams['_escape']   = true;
         $urlParams['_use_rewrite']   = true;
+        $urlParams['_secure']   = true;
         $urlParams['_query']    = $params;
         return $this->getUrl('*/*/*', $urlParams);
     }
