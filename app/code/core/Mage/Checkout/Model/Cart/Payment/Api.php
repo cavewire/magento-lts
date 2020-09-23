@@ -40,7 +40,7 @@ class Mage_Checkout_Model_Cart_Payment_Api extends Mage_Checkout_Model_Api_Resou
      */
     protected function _preparePaymentData($data)
     {
-        if (!(is_array($data) && is_null($data[0]))) {
+        if (!(is_array($data) && (!array_key_exists(0, $data) || is_null($data[0])))) {
             return array();
         }
 
