@@ -65,7 +65,7 @@ class Mage_Core_Model_Config_Options extends Varien_Object
         $this->_data['skin_dir']    = $root.DS.'skin';
         $this->_data['var_dir']     = $this->getVarDir();
         $this->_data['tmp_dir']     = $this->_data['var_dir'].DS.'tmp';
-        $this->_data['cache_dir']   = $this->_data['var_dir'].DS.'cache';
+        $this->_data['cache_dir']   = $this->getCacheDir();
         $this->_data['log_dir']     = $this->_data['var_dir'].DS.'log';
         $this->_data['session_dir'] = $this->_data['var_dir'].DS.'session';
         $this->_data['upload_dir']  = $this->_data['media_dir'].DS.'upload';
@@ -217,7 +217,11 @@ class Mage_Core_Model_Config_Options extends Varien_Object
     public function getCacheDir()
     {
         //$dir = $this->getDataSetDefault('cache_dir', $this->getVarDir().DS.'cache');
-        $dir = $this->_data['cache_dir'];
+
+        $dir = isset($this->_data['cache_dir']) ? $this->_data['cache_dir']
+            : $this->getSysTmpDir().DS.'magento'.DS.basename($this->_data['base_dir']).DS.'cache';
+
+        //$dir = $this->_data['cache_dir'];
         $this->createDirIfNotExists($dir);
         return $dir;
     }
