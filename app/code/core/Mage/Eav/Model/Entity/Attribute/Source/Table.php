@@ -81,6 +81,14 @@ class Mage_Eav_Model_Entity_Attribute_Source_Table extends Mage_Eav_Model_Entity
      */
     public function getOptionText($value)
     {
+        if (is_array($value)) {
+            if (count($value) == 0 || is_array($value[0])) {
+                return false;
+            }
+
+            $value = implode(',', $value);
+        }
+        
         $isMultiple = false;
         if (strpos($value, ',')) {
             $isMultiple = true;
