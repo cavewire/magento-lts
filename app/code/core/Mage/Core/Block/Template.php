@@ -247,6 +247,11 @@ HTML;
                 $thisClass = get_class($this);
                 Mage::log('Not valid template file:' . $fileName . ' class: ' . $thisClass, Zend_Log::CRIT, null, true);
             }
+        } catch (Twig_Error_Syntax $e) {
+            //CG Also added Twig Error handling
+            ob_get_clean();
+            return $e->getMessage();
+            
         } catch (Exception $e) {
             ob_get_clean();
             throw $e;
