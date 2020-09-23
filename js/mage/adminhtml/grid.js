@@ -725,7 +725,11 @@ var varienGridAction = {
             win.focus();
             select.options[0].selected = true;
         } else {
-            setLocation(config.href);
+            if (config.window) {
+                window.open(config.href, '', '');
+            } else {
+                setLocation(config.href);
+            }
         }
     }
 };
