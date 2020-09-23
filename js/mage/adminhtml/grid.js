@@ -638,6 +638,9 @@ varienGridMassaction.prototype = {
         }
     },
     onMassactionComplete: function(transport) {
+        this.unselectAll();
+        this.grid.reload();
+        
         if(this.currentItem.complete) {
             try {
                 var listener = this.getListener(this.currentItem.complete) || Prototype.emptyFunction;
