@@ -373,6 +373,13 @@ class Mage_Cms_Model_Wysiwyg_Images_Storage extends Varien_Object
             return false;
         }
 
+        //TODO:CG This is not vital, quick hack. Just allows pdf upload via wysywig. Does not matter if lost in upgrade.
+        $mimeType = mime_content_type($source);
+        if ($mimeType == 'application/pdf') {
+            return false;
+        }
+        //END CG HACK
+
         $targetDir = $this->getThumbsPath($source);
         $io = new Varien_Io_File();
         if (!$io->isWriteable($targetDir)) {
