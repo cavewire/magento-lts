@@ -1535,6 +1535,11 @@ abstract class Mage_Eav_Model_Entity_Abstract extends Mage_Core_Model_Resource_A
         $this->_attributeValuesToDelete = array();
 
         $attribute      = $this->getAttribute($attributeCode);
+
+        if (!$attribute) {
+            throw new Exception('Cannot find Attribute: '.$attributeCode);
+        }
+
         $backend        = $attribute->getBackend();
         $table          = $backend->getTable();
         $entity         = $attribute->getEntity();
