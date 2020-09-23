@@ -241,6 +241,8 @@ HTML;
                 ($this->_viewDir == Mage::getBaseDir('design') || strpos(realpath($this->_viewDir), realpath(Mage::getBaseDir('design'))) === 0)
             ) {
                 include $this->_viewDir . DS . $fileName;
+            } else if (Mage::helper('cavewire_primer/theme')->fileExists($fileName)) {
+                echo Mage::helper('cavewire_primer/theme')->loadTemplateBlock($fileName, $this, $this->_viewVars);
             } else {
                 $thisClass = get_class($this);
                 Mage::log('Not valid template file:' . $fileName . ' class: ' . $thisClass, Zend_Log::CRIT, null, true);
