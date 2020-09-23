@@ -244,6 +244,7 @@ class Mage_Checkout_Block_Cart_Item_Renderer extends Mage_Core_Block_Template
 
         $params = array(
             'id' => $this->getItem()->getId(),
+            '_secure' => $this->_getApp()->getStore()->isCurrentlySecure(),
         );
         if ($addFormKey) {
             $params[Mage_Core_Model_Url::FORM_KEY] = Mage::getSingleton('core/session')->getFormKey();
