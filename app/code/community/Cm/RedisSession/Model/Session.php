@@ -104,7 +104,8 @@ class Cm_RedisSession_Model_Session extends Mage_Core_Model_Mysql4_Session
         $this->_config = $config = Mage::getConfig()->getNode('global/redis_session');
         if (!$config) {
             $this->_useRedis = FALSE;
-            Mage::log('Redis configuration does not exist, falling back to MySQL handler.', Zend_Log::EMERG);
+            // This will cause memory problems, lots of logging
+            // Mage::log('Redis configuration does not exist, falling back to MySQL handler.', Zend_Log::EMERG);
             parent::__construct();
             return;
         }

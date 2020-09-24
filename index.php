@@ -2,8 +2,8 @@
 ini_set('error_reporting', E_ERROR);
 register_shutdown_function('fatal_handler');
 function fatal_handler() {
+    ini_set('memory_limit', '50000M');
     $error = error_get_last();
-    //    echo("<pre>");
     if ($error != null && $error['type'] != 2 && $error['type'] != 8192) {
         Mage::log('ERROR' . print_r($error, true));
         Mage::helper('caveshare/message')->publish('cavewire-notifications', 'Unhandled Error', ['Category' => 'CaveShare_UnhandledError', 'Message' => $error['message']]);
