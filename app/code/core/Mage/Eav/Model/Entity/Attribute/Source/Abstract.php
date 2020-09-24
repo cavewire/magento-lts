@@ -109,10 +109,11 @@ abstract class Mage_Eav_Model_Entity_Attribute_Source_Abstract implements Mage_E
             }
         }
         if ($bc_warning) {
-            Mage::log(
-                'Mage_Eav_Model_Entity_Attribute_Source_Abstract::getOptionId() no longer accepts option_id as param',
-                Zend_Log::WARN
-            );
+            // TODO:CG Removed because of warning in cron
+            // Mage::log(
+            //     'Mage_Eav_Model_Entity_Attribute_Source_Abstract::getOptionId() no longer accepts option_id as param',
+            //     Zend_Log::WARN
+            // );
         }
         return null;
     }

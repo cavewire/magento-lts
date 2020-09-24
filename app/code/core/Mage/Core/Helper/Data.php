@@ -826,7 +826,7 @@ XML;
                 }
                 if (!$data) {
                     // no translation intentionally
-                    throw new Exception(sprintf("No content found in files:\n%s", implode("\n", $srcFiles)));
+                    // throw new Exception(sprintf("No content found in files:\n%s", implode("\n", $srcFiles)));
                 }
                 if ($targetFile) {
                     file_put_contents($targetFile, $data, LOCK_EX);
