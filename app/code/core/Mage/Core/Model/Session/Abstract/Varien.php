@@ -56,7 +56,7 @@ class Mage_Core_Model_Session_Abstract_Varien extends Varien_Object
      */
     public function start($sessionName = null)
     {
-        if (isset($_SESSION) && !$this->getSkipEmptySessionCheck() && !array_key_exists('REMOTE_ADDR', $_SERVER)) {
+        if (isset($_SESSION) && !$this->getSkipEmptySessionCheck()) {
             return $this;
         }
 
