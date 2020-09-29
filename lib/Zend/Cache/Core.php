@@ -400,14 +400,15 @@ class Zend_Cache_Core
             return false;
         }
 
-        if ($this->_options['write_control']) {
-            $data2 = $this->_backend->load($id, true);
-            if ($data!=$data2) {
-                $this->_log("Zend_Cache_Core::save(): write control of item '{$id}' failed -> removing it", 4);
-                $this->_backend->remove($id);
-                return false;
-            }
-        }
+        //TODO:CG Removed this, as with a cluster the replica lag caused issues, and would delete it.
+        // if ($this->_options['write_control']) {
+        //     $data2 = $this->_backend->load($id, true);
+        //     if ($data!=$data2) {
+        //         $this->_log("Zend_Cache_Core::save(): write control of item '{$id}' failed -> removing it", 4);
+        //         $this->_backend->remove($id);
+        //         return false;
+        //     }
+        // }
 
         return true;
     }
