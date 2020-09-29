@@ -164,7 +164,8 @@ class Mage_Core_Block_Template extends Mage_Core_Block_Abstract
      */
     public function setScriptPath($dir)
     {
-        if (strpos($dir, '..') === FALSE && ($dir === Mage::getBaseDir('design') || strpos(realpath($dir), realpath(Mage::getBaseDir('design'))) === 0)) {
+        $scriptPath = realpath($dir);
+        if (strpos($scriptPath, realpath(Mage::getBaseDir('design'))) === 0 || $this->_getAllowSymlinks()) {
             $this->_viewDir = $dir;
         } else {
             Mage::log('Not valid script path:' . $dir, Zend_Log::CRIT, null, null, true);
@@ -207,6 +208,7 @@ class Mage_Core_Block_Template extends Mage_Core_Block_Abstract
      */
     public function fetchView($fileName)
     {
+        Mage::log('------start-'.$fileName);
         Varien_Profiler::start($fileName);
 
         // EXTR_SKIP protects from overriding
@@ -235,13 +237,12 @@ HTML;
         }
 
         try {
-            if (
-                strpos($this->_viewDir . DS . $fileName, '..') === FALSE
-                &&
-                ($this->_viewDir == Mage::getBaseDir('design') || strpos(realpath($this->_viewDir), realpath(Mage::getBaseDir('design'))) === 0)
-            ) {
-                include $this->_viewDir . DS . $fileName;
+            $includeFilePath = realpath($this->_viewDir . DS . $fileName);
+            if (strpos($includeFilePath, realpath($this->_viewDir)) === 0 || $this->_getAllowSymlinks()) {
+                Mage::log('INCLUDE::'.$this->_viewDir . DS . $fileName);
+                include $includeFilePath;
             } else if (Mage::helper('cavewire_primer/theme')->fileExists($fileName)) {
+                Mage::log('TWIGGY::'.$fileName);
                 echo Mage::helper('cavewire_primer/theme')->loadTemplateBlock($fileName, $this, $this->_viewVars);
             } else {
                 $thisClass = get_class($this);
@@ -249,10 +250,15 @@ HTML;
             }
         } catch (Twig_Error_Syntax $e) {
             //CG Also added Twig Error handling
+            Mage::log('ERROR::'.$e->getMessage());
             ob_get_clean();
             return $e->getMessage();
             
         } catch (Exception $e) {
+            ob_get_clean();
+            throw $e;
+        } catch (Throwable $e) {
+            Mage::log(print_r($e, true));
             ob_get_clean();
             throw $e;
         }
@@ -267,6 +273,7 @@ HTML;
             $html = '';
         }
         Varien_Profiler::stop($fileName);
+        Mage::log('------end-'.$fileName);
         return $html;
     }
 
@@ -277,6 +284,7 @@ HTML;
      */
     public function renderView()
     {
+        Mage::log('renderView');
         $this->setScriptPath(Mage::getBaseDir('design'));
         $html = $this->fetchView($this->getTemplateFile());
         return $html;
@@ -289,6 +297,7 @@ HTML;
      */
     protected function _toHtml()
     {
+        Mage::log('_toHtml');
         if (!$this->getTemplate()) {
             return '';
         }
