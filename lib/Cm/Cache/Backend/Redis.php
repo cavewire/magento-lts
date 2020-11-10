@@ -123,15 +123,13 @@ class Cm_Cache_Backend_Redis extends Zend_Cache_Backend implements Zend_Cache_Ba
             $this->_redis->forceStandalone();
         }
 
-        //TODO:CG Added so we can have multiple sites using same redis cache backend
-        $siteId = isset($options['site']) ? $options['site'] : '';
+        $siteId = isset($options['site']) ? $options['site'].':' : '';
 
-        $this->_setIds = $siteId.':'.self::SET_IDS;
-        $this->_setTags = $siteId.':'.self::SET_TAGS;
+        $this->_setIds = $siteId.self::SET_IDS;
+        $this->_setTags = $siteId.self::SET_TAGS;
 
-        $this->_prefixKey = $siteId.':'.self::PREFIX_KEY;
-        $this->_prefixTagIds = $siteId.':'.self::PREFIX_TAG_IDS;
-        //TODO:CG END
+        $this->_prefixKey = $siteId.self::PREFIX_KEY;
+        $this->_prefixTagIds = $siteId.self::PREFIX_TAG_IDS;
 
         $connectRetries = isset($options['connect_retries']) ? (int)$options['connect_retries'] : self::DEFAULT_CONNECT_RETRIES;
         $this->_redis->setMaxConnectRetries($connectRetries);
