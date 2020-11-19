@@ -795,6 +795,8 @@ final class Mage
      */
     public static function isInstalled($options = array())
     {
+        return true; // Waste of time checking if its installed for every request.
+        
         if (self::$_isInstalled === null) {
             self::setRoot();
 
