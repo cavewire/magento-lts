@@ -486,16 +486,61 @@ class Varien_Simplexml_Config
      * @param string $filePath
      * @return boolean
      */
-    public function loadFile($filePath)
-    {
+    public function loadFile($filePath) {
         if (!is_readable($filePath)) {
             //throw new Exception('Can not read xml file '.$filePath);
             return false;
         }
 
-        $fileData = file_get_contents($filePath);
+        $fileData = $this->getFileData($filePath);
         $fileData = $this->processFileData($fileData);
         return $this->loadString($fileData, $this->_elementClass);
+    }
+
+    public function getFileData($filePath) {
+        $filePathPHP = str_replace('.xml', '.php', $filePath);
+
+        if (@filectime($filePathPHP)) {
+            return $this->getCachePHP($filePathPHP);
+        }
+        
+        $fileData = file_get_contents($filePath);
+
+        // If its config of local
+        if (strpos($filePath, 'app/etc/config.xml') !== false || strpos($filePath, 'app/etc/local.xml') !== false) {
+            $this->setCachePHP($filePathPHP, $fileData);
+        }
+
+        return $fileData;
+    }
+
+    public function setCachePHP($filePath, $fileData) {
+        $val = var_export($fileData, true);
+
+        // HHVM fails at __set_state, so just use object cast for now
+        $val = str_replace('stdClass::__set_state', '(object)', $val);
+
+        $tmp = $filePath . uniqid('', true) . '.tmp';
+
+        file_put_contents($tmp, '<?php $val = ' . $val . ';', LOCK_EX);
+
+        if (@filectime($filePath)) {
+            opcache_invalidate($filePath, true);
+        }
+
+        rename($tmp, $filePath);
+    }
+
+    public function getCachePHP($filePath) {
+        //Only get the data, if the file exists in the file system
+        if (@filectime($filePath)) {
+            try {
+                @include $filePath;
+            } catch (Exception $e) {
+            }
+
+            return $val ?? false;
+        }
     }
 
     /**
