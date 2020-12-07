@@ -498,7 +498,9 @@ class Varien_Simplexml_Config
     }
 
     public function getFileData($filePath) {
-        $filePathPHP = str_replace('.xml', '.php', $filePath);
+        $timestamp = @filectime($filePath);
+
+        $filePathPHP = str_replace('.xml', '-'.$timestamp.'.php', $filePath);
 
         if (@filectime($filePathPHP)) {
             return $this->getCachePHP($filePathPHP);
@@ -508,6 +510,9 @@ class Varien_Simplexml_Config
 
         // If its config of local
         if (strpos($filePath, 'app/etc/config.xml') !== false || strpos($filePath, 'app/etc/local.xml') !== false) {
+            // Remove old cache files
+            $formatPHP = str_replace('.xml', '-*.php', $filePath);
+            array_map('unlink', glob($formatPHP));
             $this->setCachePHP($filePathPHP, $fileData);
         }
 
@@ -523,10 +528,6 @@ class Varien_Simplexml_Config
         $tmp = $filePath . uniqid('', true) . '.tmp';
 
         file_put_contents($tmp, '<?php $val = ' . $val . ';', LOCK_EX);
-
-        if (@filectime($filePath)) {
-            opcache_invalidate($filePath, true);
-        }
 
         rename($tmp, $filePath);
     }
