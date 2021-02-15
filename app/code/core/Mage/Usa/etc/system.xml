@@ -399,7 +399,7 @@
                         </debug>
                     </fields>
                 </dhl>
-                <fedex translate="label" module="usa">
+                <!-- <fedex translate="label" module="usa">
                     <label>FedEx</label>
                     <frontend_type>text</frontend_type>
                     <sort_order>120</sort_order>
@@ -654,8 +654,8 @@
                             <show_in_store>0</show_in_store>
                         0</sort_order>
                     </fields>
-                </fedex>
-                <ups translate="label" module="usa">
+                </fedex> -->
+                <!-- <ups translate="label" module="usa">
                     <label>UPS</label>
                     <frontend_type>text</frontend_type>
                     <sort_order>100</sort_order>
@@ -993,8 +993,8 @@
                             <show_in_store>0</show_in_store>
                         </debug>
                     </fields>
-                </ups>
-                <usps translate="label" module="usa">
+                </ups> -->
+                <!-- <usps translate="label" module="usa">
                     <label>USPS</label>
                     <frontend_type>text</frontend_type>
                     <sort_order>110</sort_order>
@@ -1264,7 +1264,7 @@
                             <show_in_store>0</show_in_store>
                         0</sort_order>
                     </fields>
-                </usps>
+                </usps> --> 
                 <dhlint translate="label" module="usa">
                     <label>DHL</label>
                     <frontend_type>text</frontend_type>
