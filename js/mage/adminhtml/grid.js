@@ -627,11 +627,16 @@ varienGridMassaction.prototype = {
         }
 
         if(this.useAjax && item.url) {
-            new Ajax.Request(item.url, {
-                'method': 'post',
-                'parameters': this.form.serialize(true),
-                'onComplete': this.onMassactionComplete.bind(this)
-            });
+            // load the ajaxData object with all the form data
+            var ajaxData = new FormData(this.form);
+
+            jQuery.ajax({
+                url: item.url,
+                type: 'post',
+                contentType: false,
+                processData:false,
+                data: ajaxData,
+            }).done(this.onMassactionComplete.bind(this));
         } else if(item.url) {
             this.form.action = item.url;
             this.form.submit();
