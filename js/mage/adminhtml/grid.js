@@ -629,6 +629,7 @@ varienGridMassaction.prototype = {
         if(this.useAjax && item.url) {
             // load the ajaxData object with all the form data
             var ajaxData = new FormData(this.form);
+            var parameters = this.form.serialize(true);
 
             jQuery.ajax({
                 url: item.url,
@@ -636,7 +637,7 @@ varienGridMassaction.prototype = {
                 contentType: false,
                 processData:false,
                 data: ajaxData,
-            }).done(this.onMassactionComplete.bind(this));
+            }).done(this.onMassactionComplete.bind(this, {request: {parameters}}));
         } else if(item.url) {
             this.form.action = item.url;
             this.form.submit();
