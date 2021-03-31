@@ -116,7 +116,6 @@ class Mage_Checkout_Model_Api_Resource_Customer extends Mage_Checkout_Model_Api_
     protected function _prepareGuestQuote(Mage_Sales_Model_Quote $quote)
     {
         $quote->setCustomerId(null)
-            ->setCustomerEmail($quote->getBillingAddress()->getEmail())
             ->setCustomerIsGuest(true)
             ->setCustomerGroupId(Mage_Customer_Model_Group::NOT_LOGGED_IN_ID);
         return $this;
