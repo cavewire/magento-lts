@@ -492,7 +492,8 @@ class Varien_Simplexml_Config
             return false;
         }
 
-        $fileData = $this->getFileData($filePath);
+        $fileData = file_get_contents($filePath);
+        // $fileData = $this->getFileData($filePath); //TODO:CG This is the PHP cached way.
         $fileData = $this->processFileData($fileData);
         return $this->loadString($fileData, $this->_elementClass);
     }
