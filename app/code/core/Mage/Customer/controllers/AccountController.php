@@ -225,7 +225,7 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
                 $session->setBeforeAuthUrl($session->getAfterAuthUrl(true));
             }
         }
-        $this->_redirectUrl($session->getBeforeAuthUrl(true));
+        $this->_redirectUrl($session->getBeforeAuthUrl(true)).'?cache=false';
     }
 
     /**
@@ -586,9 +586,9 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
             $this->getRequest()->getPost('password')
         );
 
-        $successUrl = $this->_getUrl('*/*/index', array('_secure' => true));
+        $successUrl = $this->_getUrl('*/*/index', ['_secure' => true, '_query' => ['cache' => 'false']]);
         if ($this->_getSession()->getBeforeAuthUrl()) {
-            $successUrl = $this->_getSession()->getBeforeAuthUrl(true);
+            $successUrl = $this->_getSession()->getBeforeAuthUrl(true).'?cache=false';
         }
         return $successUrl;
     }
