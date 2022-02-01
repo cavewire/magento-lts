@@ -225,7 +225,7 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
                 $session->setBeforeAuthUrl($session->getAfterAuthUrl(true));
             }
         }
-        $this->_redirectUrl($session->getBeforeAuthUrl(true).'?cache=false');
+        $this->_redirectUrl($session->getBeforeAuthUrl(true));
     }
 
     /**
