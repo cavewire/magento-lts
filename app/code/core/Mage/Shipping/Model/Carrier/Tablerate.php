@@ -162,7 +162,13 @@ class Mage_Shipping_Model_Carrier_Tablerate extends Mage_Shipping_Model_Carrier_
             }
 
             $method->setPrice($shippingPrice);
-            $method->setCost($rate['cost']);
+            //TODO:CG ADDED to fix "Undefined index: cost" --> 
+            $method->setCost(0);
+
+            if (array_key_exists('cost', $rate)) {
+                $method->setCost($rate['cost']);
+            }
+            // <-- TODO:CG ADDED
 
             $result->append($method);
         } elseif (empty($rate) && $request->getFreeShipping() === true) {
