@@ -879,7 +879,7 @@ class Varien_Object implements ArrayAccess
      */
     public function offsetGet($offset): mixed
     {
-        return isset($this->_data[$offset]) ? $this->_data[$offset] : null;
+        return isset($this->_data[$offset]) ? $this->_data[$offset] : false;
     }
 
 
