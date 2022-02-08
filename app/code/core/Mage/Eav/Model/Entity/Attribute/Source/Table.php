@@ -90,7 +90,7 @@ class Mage_Eav_Model_Entity_Attribute_Source_Table extends Mage_Eav_Model_Entity
         }
         
         $isMultiple = false;
-        if (strpos($value, ',')) {
+        if (strpos($value ?? '', ',')) {
             $isMultiple = true;
             $value = explode(',', $value);
         }
