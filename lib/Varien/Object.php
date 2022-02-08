@@ -340,7 +340,7 @@ class Varien_Object implements ArrayAccess
         $default = null;
 
         // accept a/b/c as ['a']['b']['c']
-        if (strpos($key,'/')) {
+        if (strpos($key ?? '','/')) {
             $keyArr = explode('/', $key);
             $data = $this->_data;
             foreach ($keyArr as $i=>$k) {
@@ -842,7 +842,7 @@ class Varien_Object implements ArrayAccess
      * @param string $offset
      * @param mixed $value
      */
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
         $this->_data[$offset] = $value;
     }
@@ -854,7 +854,7 @@ class Varien_Object implements ArrayAccess
      * @param string $offset
      * @return boolean
      */
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         return isset($this->_data[$offset]);
     }
@@ -865,7 +865,7 @@ class Varien_Object implements ArrayAccess
      * @link http://www.php.net/manual/en/arrayaccess.offsetunset.php
      * @param string $offset
      */
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         unset($this->_data[$offset]);
     }
@@ -877,7 +877,7 @@ class Varien_Object implements ArrayAccess
      * @param string $offset
      * @return mixed
      */
-    public function offsetGet($offset)
+    public function offsetGet($offset): mixed
     {
         return isset($this->_data[$offset]) ? $this->_data[$offset] : null;
     }

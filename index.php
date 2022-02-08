@@ -5,10 +5,12 @@ function fatal_handler() {
     ini_set('memory_limit', '50000M');
     $error = error_get_last();
     if ($error != null && $error['type'] != 2 && $error['type'] != 8192) {
-        Mage::log('ERROR' . print_r($error, true));
+        Mage::log('ERROR:~:' . print_r($error, true));
         Mage::helper('caveshare/message')->publish('cavewire-notifications', 'Unhandled Error', ['Category' => 'CaveShare_UnhandledError', 'Message' => $error['message']]);
     }
-    //print_r($error);
+    // if ($error != null) {
+    //     Mage::log('ERROR:-:'.print_r($error, true));
+    // }
 }
 
 /**

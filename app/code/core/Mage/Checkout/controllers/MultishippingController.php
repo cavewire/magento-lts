@@ -558,17 +558,20 @@ class Mage_Checkout_MultishippingController extends Mage_Checkout_Controller_Act
                 ->sendPaymentFailedEmail($this->_getCheckout()->getQuote(), $e->getMessage(), 'multi-shipping');
             $this->_getCheckout()->getCheckoutSession()->clear();
             $this->_getCheckoutSession()->addError($e->getMessage());
+            Mage::logException($e);
             $this->_redirect('*/cart');
         } catch (Mage_Core_Exception $e) {
             Mage::helper('checkout')
                 ->sendPaymentFailedEmail($this->_getCheckout()->getQuote(), $e->getMessage(), 'multi-shipping');
             $this->_getCheckoutSession()->addError($e->getMessage());
+            Mage::logException($e);
             $this->_redirect('*/*/billing');
         } catch (Exception $e) {
             Mage::logException($e);
             Mage::helper('checkout')
                 ->sendPaymentFailedEmail($this->_getCheckout()->getQuote(), $e->getMessage(), 'multi-shipping');
             $this->_getCheckoutSession()->addError($this->__('Order place error.'));
+            Mage::logException($e);
             $this->_redirect('*/*/billing');
         }
     }

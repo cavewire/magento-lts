@@ -363,6 +363,7 @@ abstract class Mage_Paypal_Controller_Express_Abstract extends Mage_Core_Control
         } catch (Mage_Core_Exception $e) {
             Mage::helper('checkout')->sendPaymentFailedEmail($this->_getQuote(), $e->getMessage());
             $this->_getSession()->addError($e->getMessage());
+            Mage::logException($e);
             $this->_redirect('*/*/review');
         } catch (Exception $e) {
             Mage::helper('checkout')->sendPaymentFailedEmail(

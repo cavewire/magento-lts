@@ -755,7 +755,7 @@ class Varien_Data_Collection implements IteratorAggregate, Countable
     /**
      * Implementation of IteratorAggregate::getIterator()
      */
-    public function getIterator()
+    public function getIterator(): Traversable
     {
         $this->load();
         return new ArrayIterator($this->_items);
@@ -766,7 +766,7 @@ class Varien_Data_Collection implements IteratorAggregate, Countable
      *
      * @return int
      */
-    public function count()
+    public function count() : int
     {
         $this->load();
         return count($this->_items);

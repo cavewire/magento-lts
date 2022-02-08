@@ -84,7 +84,7 @@ function now($dayOnly = false)
  */
 function is_empty_date($date)
 {
-    return preg_replace('#[ 0:-]#', '', $date)==='';
+    return preg_replace('#[ 0:-]#', '', $date ?? '')==='';
 }
 
 /**

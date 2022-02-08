@@ -163,6 +163,9 @@ class Mage_Payment_Model_Info extends Mage_Core_Model_Abstract
         if (is_array($key) && is_null($value)) {
             $this->_additionalInformation = $key;
         } else {
+            if (!is_array($this->_additionalInformation)) {
+                $this->_additionalInformation = [];
+            }
             $this->_additionalInformation[$key] = $value;
         }
         return $this->setData('additional_information', $this->_additionalInformation);

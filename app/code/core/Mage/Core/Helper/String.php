@@ -83,7 +83,7 @@ class Mage_Core_Helper_String extends Mage_Core_Helper_Abstract
      */
     public function strlen($string)
     {
-        return iconv_strlen($string, self::ICONV_CHARSET);
+        return iconv_strlen($string ?? '', self::ICONV_CHARSET);
     }
 
     /**

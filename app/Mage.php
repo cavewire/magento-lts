@@ -421,7 +421,7 @@ final class Mage
      */
     public static function getStoreConfigFlag($path, $store = null)
     {
-        $flag = strtolower(self::getStoreConfig($path, $store));
+        $flag = strtolower(self::getStoreConfig($path, $store) ?? '');
         if (!empty($flag) && 'false' !== $flag) {
             return true;
         } else {
@@ -848,6 +848,7 @@ final class Mage
         if (!self::getConfig()) {
             return;
         }
+        
 
         try {
             $logActive = self::getStoreConfig('dev/log/active');
@@ -858,7 +859,7 @@ final class Mage
         catch (Exception $e) {
             $logActive = true;
         }
-
+        
         if (!self::$_isDeveloperMode && !$logActive && !$forceLog) {
             return;
         }
@@ -887,7 +888,7 @@ final class Mage
                     mkdir($logDir);
                     chmod($logDir, 0750);
                 }
-
+                
                 if (!file_exists($logFile)) {
                     file_put_contents($logFile, '');
                     chmod($logFile, 0640);
@@ -911,6 +912,7 @@ final class Mage
             }
 
             $message = addcslashes($message, '<?');
+            
             $loggers[$file]->log($message, $level);
         }
         catch (Exception $e) {
