@@ -356,7 +356,7 @@ abstract class Mage_Core_Helper_Abstract
         if ($addSlashes === true) {
             $data = addslashes($data);
         }
-        return htmlspecialchars($data, ENT_QUOTES, null, false);
+        return htmlspecialchars($data ?? '', ENT_QUOTES, null, false);
     }
 
     /**
