@@ -251,7 +251,7 @@ class Zend_Db_Statement_Pdo extends Zend_Db_Statement implements IteratorAggrega
             $style = $this->_fetchMode;
         }
         try {
-            return $this->_stmt->fetch($style, $cursor, $offset);
+            return $this->_stmt->fetch($style, $cursor ?? 0, $offset ?? 0);
         } catch (PDOException $e) {
             #require_once 'Zend/Db/Statement/Exception.php';
             throw new Zend_Db_Statement_Exception($e->getMessage(), $e->getCode(), $e);
