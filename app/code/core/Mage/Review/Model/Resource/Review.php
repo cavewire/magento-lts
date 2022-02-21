@@ -346,7 +346,7 @@ class Mage_Review_Model_Resource_Review extends Mage_Core_Model_Resource_Db_Abst
 
             $writeAdapter->beginTransaction();
             try {
-                if ($oldData['primary_id'] > 0) {
+                if ($oldData && $oldData['primary_id'] > 0) {
                     $condition = array("{$this->_aggregateTable}.primary_id = ?" => $oldData['primary_id']);
                     $writeAdapter->update($this->_aggregateTable, $data->getData(), $condition);
                 } else {
