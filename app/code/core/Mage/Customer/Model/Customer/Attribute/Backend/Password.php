@@ -43,7 +43,7 @@ class Mage_Customer_Model_Customer_Attribute_Backend_Password extends Mage_Eav_M
      */
     public function beforeSave($object)
     {
-        $password = trim($object->getPassword());
+        $password = is_null($object->getPassword()) ? '' : trim($object->getPassword());
         $len = Mage::helper('core/string')->strlen($password);
         if ($len) {
             $minPasswordLength = Mage::getModel('customer/customer')->getMinPasswordLength();
