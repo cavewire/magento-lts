@@ -181,7 +181,7 @@ class Mage_SalesRule_Model_Validator extends Mage_Core_Model_Abstract
          */
         if ($rule->getCouponType() != Mage_SalesRule_Model_Rule::COUPON_TYPE_NO_COUPON) {
             $couponCode = $address->getQuote()->getCouponCode();
-            if (strlen($couponCode)) {
+            if (!is_null($couponCode) && strlen($couponCode)) {
                 $coupon = Mage::getModel('salesrule/coupon');
                 $coupon->load($couponCode, 'code');
                 if ($coupon->getId()) {
@@ -965,11 +965,11 @@ class Mage_SalesRule_Model_Validator extends Mage_Core_Model_Abstract
         $label = '';
         if ($ruleLabel) {
             $label = $ruleLabel;
-        } elseif (strlen($address->getCouponCode())) {
+        } elseif (!is_null($address->getCouponCode()) && strlen($address->getCouponCode())) {
             $label = $address->getCouponCode();
         }
 
-        if (strlen($label)) {
+        if (!is_null($label) && strlen($label)) {
             $description[$rule->getId()] = $label;
         }
 
