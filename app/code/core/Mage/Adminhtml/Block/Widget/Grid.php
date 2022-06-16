@@ -1048,8 +1048,10 @@ class Mage_Adminhtml_Block_Widget_Grid extends Mage_Adminhtml_Block_Widget
             );
         }
 
-        $io->streamUnlock();
-        $io->streamClose();
+        // TODO:CG Removed from upgrade to PHP8.1
+        // Causing 500 error when downloading csv
+        // $io->streamUnlock();
+        // $io->streamClose();
 
         return array(
             'type'  => 'filename',

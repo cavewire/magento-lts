@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Zend Framework
  *
@@ -147,7 +148,7 @@ abstract class Zend_Controller_Response_Abstract
     {
         $this->canSendHeaders(true);
         $this->setHeader('Location', $url, true)
-             ->setHttpResponseCode($code);
+            ->setHttpResponseCode($code);
 
         return $this;
     }
@@ -192,7 +193,7 @@ abstract class Zend_Controller_Response_Abstract
      */
     public function clearHeader($name)
     {
-        if (! count($this->_headers)) {
+        if (!count($this->_headers)) {
             return $this;
         }
 
@@ -252,7 +253,7 @@ abstract class Zend_Controller_Response_Abstract
      */
     public function clearRawHeader($headerRaw)
     {
-        if (! count($this->_headersRaw)) {
+        if (!count($this->_headersRaw)) {
             return $this;
         }
 
@@ -272,7 +273,7 @@ abstract class Zend_Controller_Response_Abstract
     public function clearAllHeaders()
     {
         return $this->clearHeaders()
-                    ->clearRawHeaders();
+            ->clearRawHeaders();
     }
 
     /**

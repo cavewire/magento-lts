@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Magento
  *
@@ -79,7 +80,7 @@ class Mage_Core_Controller_Front_Action extends Mage_Core_Controller_Varien_Acti
     {
         parent::postDispatch();
         if (!$this->getFlag('', self::FLAG_NO_START_SESSION)) {
-            Mage::getSingleton('core/session')->setLastUrl(Mage::getUrl('*/*/*', array('_current'=>true)));
+            Mage::getSingleton('core/session')->setLastUrl(Mage::getUrl('*/*/*', array('_current' => true)));
         }
         return $this;
     }
@@ -138,7 +139,7 @@ class Mage_Core_Controller_Front_Action extends Mage_Core_Controller_Varien_Acti
             ->setHeader('Cache-Control', 'must-revalidate, post-check=0, pre-check=0', true)
             ->setHeader('Content-type', $contentType, true)
             ->setHeader('Content-Length', is_null($contentLength) ? strlen($content) : $contentLength)
-            ->setHeader('Content-Disposition', 'attachment; filename="'.$fileName.'"')
+            ->setHeader('Content-Disposition', 'attachment; filename="' . $fileName . '"')
             ->setHeader('Last-Modified', date('r'));
 
         if (!is_null($content)) {
@@ -155,7 +156,10 @@ class Mage_Core_Controller_Front_Action extends Mage_Core_Controller_Varien_Acti
                 while ($buffer = $ioAdapter->streamRead()) {
                     print $buffer;
                 }
-                $ioAdapter->streamClose();
+
+                // TODO:CG Removed from upgrade to PHP8.1
+                // Causing 500 error when downloading csv
+                // $ioAdapter->streamClose();
                 if (!empty($content['rm'])) {
                     $ioAdapter->rm($file);
                 }
