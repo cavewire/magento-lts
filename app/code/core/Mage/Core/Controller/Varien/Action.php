@@ -1102,7 +1102,10 @@ abstract class Mage_Core_Controller_Varien_Action
                 while ($buffer = $ioAdapter->streamRead()) {
                     print $buffer;
                 }
-                $ioAdapter->streamClose();
+                
+                // TODO:CG Removed from upgrade to PHP8.1
+                // Causing 500 error when downloading csv
+                // $ioAdapter->streamClose();
                 if (!empty($content['rm'])) {
                     $ioAdapter->rm($file);
                 }
