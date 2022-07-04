@@ -53,7 +53,11 @@ class Mage_Adminhtml_Block_Widget_Grid_Column_Renderer_Longtext
         if ($this->getColumn()->getTruncate()) {
             $truncateLength = $this->getColumn()->getTruncate();
         }
-        $text = Mage::helper('core/string')->truncate(parent::_getValue($row), $truncateLength);
+        $rowValue = parent::_getValue($row);
+        if (is_array($rowValue)) {
+            $rowValue = implode(',', $rowValue);
+        }
+        $text = Mage::helper('core/string')->truncate($rowValue, $truncateLength);
         if ($this->getColumn()->getEscape() !== FALSE) {
             $text = $this->escapeHtml($text);
         }
