@@ -147,7 +147,9 @@ class Mage_Adminhtml_Block_Widget_Container extends Mage_Adminhtml_Block_Templat
                         $this->_buttons[$data][$id] = $this->_buttons[$level][$id];
                         unset($this->_buttons[$level][$id]);
                     } else {
-                        $this->_buttons[$level][$id][$key] = $data;
+                        if(is_string($key)) {
+                            $this->_buttons[$level][$id][$key] = $data;
+                        }
                     }
                 } else {
                     $this->_buttons[$level][$id] = $data;
