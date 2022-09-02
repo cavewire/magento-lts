@@ -272,6 +272,10 @@ class Mage_Dataflow_Model_Convert_Parser_Csv extends Mage_Dataflow_Model_Convert
             $escapedValue = Mage::helper("core")->getEscapedCSVData(array($value));
             $value = $escapedValue[0];
 
+            if (is_array($value)) {
+                $value = json_encode($value);
+            }
+
             if (strpos($value, $delimiter) !== false ||
                 empty($enclosure) ||
                 strpos($value, $enclosure) !== false ||
