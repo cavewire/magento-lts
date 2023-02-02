@@ -47,7 +47,8 @@ class Mage_Catalog_Model_Product_Attribute_Media_Api extends Mage_Catalog_Model_
     protected $_mimeTypes = array(
         'image/jpeg' => 'jpg',
         'image/gif'  => 'gif',
-        'image/png'  => 'png'
+        'image/png'  => 'png',
+        'image/webp' => 'webp'
     );
 
     public function __construct()

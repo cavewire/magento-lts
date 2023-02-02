@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Magento
  *
@@ -36,10 +37,11 @@ class Mage_ImportExport_Model_Import_Uploader extends Mage_Core_Model_File_Uploa
     protected $_tmpDir  = '';
     protected $_destDir = '';
     protected $_allowedMimeTypes = array(
-        'jpg' => 'image/jpeg',
+        'jpg'  => 'image/jpeg',
         'jpeg' => 'image/jpeg',
-        'gif' => 'image/gif',
-        'png' => 'image/png'
+        'gif'  => 'image/gif',
+        'png'  => 'image/png',
+        'webp' => 'image/webp'
     );
     const DEFAULT_FILE_TYPE = 'application/octet-stream';
 

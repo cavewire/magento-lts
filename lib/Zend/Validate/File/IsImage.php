@@ -90,6 +90,7 @@ class Zend_Validate_File_IsImage extends Zend_Validate_File_MimeType
             'image/naplps',
             'image/pjpeg',
             'image/png',
+            'image/webp',
             'image/svg',
             'image/svg+xml',
             'image/tiff',

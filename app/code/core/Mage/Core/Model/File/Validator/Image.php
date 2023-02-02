@@ -43,7 +43,8 @@ class Mage_Core_Model_File_Validator_Image
         IMAGETYPE_PNG,
         IMAGETYPE_ICO,
         IMAGETYPE_TIFF_II,
-        IMAGETYPE_TIFF_MM
+        IMAGETYPE_TIFF_MM,
+        IMAGETYPE_WEBP
     );
 
     /**
@@ -63,7 +64,8 @@ class Mage_Core_Model_File_Validator_Image
             'gif' => array(IMAGETYPE_GIF),
             'png' => array(IMAGETYPE_PNG),
             'ico' => array(IMAGETYPE_ICO),
-            'apng' => array(IMAGETYPE_PNG)
+            'apng' => array(IMAGETYPE_PNG),
+            'webp' => array(IMAGETYPE_WEBP)
         );
 
         $this->_allowedImageTypes = array();
@@ -89,7 +91,7 @@ class Mage_Core_Model_File_Validator_Image
     public function validate($filePath)
     {
         //TODO:CG Just hacked this in to allow pdf upload to wysiwyg. Not vital, does not matter if lost in upgrade.
-        if (mime_content_type($filePath) == 'application/pdf') {
+        if (mime_content_type($filePath) == 'application/pdf' || mime_content_type($filePath) == 'image/webp') {
             return null;
         }
         //END CG HACK
