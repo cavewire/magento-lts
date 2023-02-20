@@ -340,6 +340,10 @@ class Varien_Image_Adapter_Gd2 extends Varien_Image_Adapter_Abstract
      */
     public function resize($frameWidth = null, $frameHeight = null)
     {
+        if ($this->_fileType == IMAGETYPE_WEBP) {
+            return; // Dont be resizing WEBP
+        }
+
         if (empty($frameWidth) && empty($frameHeight)) {
             throw new Exception('Invalid image dimensions.');
         }

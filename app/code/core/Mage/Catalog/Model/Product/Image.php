@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Magento
  *
@@ -243,9 +244,9 @@ class Mage_Catalog_Model_Product_Image extends Mage_Core_Model_Abstract
      */
     protected function _checkMemory($file = null)
     {
-//        print '$this->_getMemoryLimit() = '.$this->_getMemoryLimit();
-//        print '$this->_getMemoryUsage() = '.$this->_getMemoryUsage();
-//        print '$this->_getNeedMemoryForBaseFile() = '.$this->_getNeedMemoryForBaseFile();
+        //        print '$this->_getMemoryLimit() = '.$this->_getMemoryLimit();
+        //        print '$this->_getMemoryUsage() = '.$this->_getMemoryUsage();
+        //        print '$this->_getNeedMemoryForBaseFile() = '.$this->_getNeedMemoryForBaseFile();
 
         return $this->_getMemoryLimit() > ($this->_getMemoryUsage() + $this->_getNeedMemoryForFile($file)) || $this->_getMemoryLimit() == -1;
     }
@@ -388,19 +389,22 @@ class Mage_Catalog_Model_Product_Image extends Mage_Core_Model_Abstract
 
         $this->_baseFile = $baseFile;
 
-        // build new filename (most important params)
-        $path = array(
-            Mage::getSingleton('catalog/product_media_config')->getBaseMediaPath(),
-            'cache',
-            Mage::app()->getStore()->getId(),
-            $path[] = $this->getDestinationSubdir()
-        );
-        if ((!empty($this->_width)) || (!empty($this->_height))) {
-            $path[] = "{$this->_width}x{$this->_height}";
-        }
+        if (str_contains($this->_baseFile, 'webp')) {
+            $this->_newFile = $this->_baseFile; // the $file contains heading slash
+        } else {
+            // build new filename (most important params)
+            $path = array(
+                Mage::getSingleton('catalog/product_media_config')->getBaseMediaPath(),
+                'cache',
+                Mage::app()->getStore()->getId(),
+                $path[] = $this->getDestinationSubdir()
+            );
+            if ((!empty($this->_width)) || (!empty($this->_height))) {
+                $path[] = "{$this->_width}x{$this->_height}";
+            }
 
-        // add misc params as a hash
-        $miscParams = array(
+            // add misc params as a hash
+            $miscParams = array(
                 ($this->_keepAspectRatio  ? '' : 'non') . 'proportional',
                 ($this->_keepFrame        ? '' : 'no')  . 'frame',
                 ($this->_keepTransparency ? '' : 'no')  . 'transparency',
@@ -408,21 +412,22 @@ class Mage_Catalog_Model_Product_Image extends Mage_Core_Model_Abstract
                 $this->_rgbToString($this->_backgroundColor),
                 'angle' . $this->_angle,
                 'quality' . $this->_quality
-        );
+            );
 
-        // if has watermark add watermark params to hash
-        if ($this->getWatermarkFile()) {
-            $miscParams[] = $this->getWatermarkFile();
-            $miscParams[] = $this->getWatermarkImageOpacity();
-            $miscParams[] = $this->getWatermarkPosition();
-            $miscParams[] = $this->getWatermarkWidth();
-            $miscParams[] = $this->getWatermarkHeigth();
+            // if has watermark add watermark params to hash
+            if ($this->getWatermarkFile()) {
+                $miscParams[] = $this->getWatermarkFile();
+                $miscParams[] = $this->getWatermarkImageOpacity();
+                $miscParams[] = $this->getWatermarkPosition();
+                $miscParams[] = $this->getWatermarkWidth();
+                $miscParams[] = $this->getWatermarkHeigth();
+            }
+
+            $path[] = md5(implode('_', $miscParams));
+
+            // append prepared filename
+            $this->_newFile = implode('/', $path) . $file; // the $file contains heading slash
         }
-
-        $path[] = md5(implode('_', $miscParams));
-
-        // append prepared filename
-        $this->_newFile = implode('/', $path) . $file; // the $file contains heading slash
 
         return $this;
     }
@@ -459,10 +464,10 @@ class Mage_Catalog_Model_Product_Image extends Mage_Core_Model_Abstract
     public function getImageProcessor()
     {
         if (!$this->_processor) {
-//            var_dump($this->_checkMemory());
-//            if (!$this->_checkMemory()) {
-//                $this->_baseFile = null;
-//            }
+            //            var_dump($this->_checkMemory());
+            //            if (!$this->_checkMemory()) {
+            //                $this->_baseFile = null;
+            //            }
             $this->_processor = new Varien_Image($this->getBaseFile());
         }
         $this->_processor->keepAspectRatio($this->_keepAspectRatio);
@@ -779,7 +784,7 @@ class Mage_Catalog_Model_Product_Image extends Mage_Core_Model_Abstract
 
     public function clearCache()
     {
-        $directory = Mage::getBaseDir('media') . DS.'catalog'.DS.'product'.DS.'cache'.DS;
+        $directory = Mage::getBaseDir('media') . DS . 'catalog' . DS . 'product' . DS . 'cache' . DS;
         $io = new Varien_Io_File();
         $io->rmdir($directory, true);
 
