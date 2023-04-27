@@ -87,7 +87,7 @@ abstract class Mage_Eav_Block_Adminhtml_Attribute_Edit_Main_Abstract extends Mag
         $yesno = Mage::getModel('adminhtml/system_config_source_yesno')->toOptionArray();
 
         $validateClass = sprintf(
-            'validate-code validate-length maximum-length-%d',
+            'validate-length maximum-length-%d',
             Mage_Eav_Model_Entity_Attribute::ATTRIBUTE_CODE_MAX_LENGTH
         );
         $fieldset->addField('attribute_code', 'text', array(
