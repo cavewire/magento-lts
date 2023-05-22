@@ -53,6 +53,13 @@ abstract class Mage_Catalog_Model_Attribute_Backend_Urlkey_Abstract extends Mage
 
         $object->setData($attributeName, $object->formatUrlKey($urlKey));
 
+        // Make sure its unique, otherwise add something on the end
+        if (!$this->getAttribute()->getEntity()->checkAttributeUniqueValue($this->getAttribute(), $object)) {
+            // TODO:CG Added random string to make sure unique
+            $randStr = substr(uniqid(), -2);
+            $object->setData($attributeName, $object->getData($attributeName).'-'.$randStr);
+        }
+
         return $this;
     }
 
