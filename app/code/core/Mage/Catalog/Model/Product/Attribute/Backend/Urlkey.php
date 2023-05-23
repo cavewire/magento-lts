@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Magento
  *
@@ -33,5 +34,19 @@
  */
 class Mage_Catalog_Model_Product_Attribute_Backend_Urlkey extends Mage_Catalog_Model_Attribute_Backend_Urlkey_Abstract
 {
+    public function beforeSave($object)
+    {
+        parent::beforeSave($object);
 
+        $attributeName = $this->getAttribute()->getName();
+
+        // Make sure its unique, otherwise add something on the end
+        if (!$this->getAttribute()->getEntity()->checkAttributeUniqueValue($this->getAttribute(), $object)) {
+            // TODO:CG Added random string to make sure unique
+            $randStr = substr(uniqid(), -2);
+            $object->setData($attributeName, $object->getData($attributeName) . '-' . $randStr);
+        }
+
+        return $this;
+    }
 }
