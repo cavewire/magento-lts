@@ -990,8 +990,14 @@ class Mage_Paypal_Model_Express_Checkout
         $customer->setSuffix($quote->getCustomerSuffix());
         $customer->setPassword($customer->decryptPassword($quote->getPasswordHash()));
         $customer->setPasswordHash($customer->hashPassword($customer->getPassword()));
-        $customer->save();
-        $quote->setCustomer($customer);
+        
+        try {
+            $customer->save();
+            $quote->setCustomer($customer);
+        } catch (\Throwable $th) {
+            // Customer save fails if email exists, but it is checked above, so something odd happening
+        }
+        
         $quote->setPasswordHash('');
 
         return $this;
