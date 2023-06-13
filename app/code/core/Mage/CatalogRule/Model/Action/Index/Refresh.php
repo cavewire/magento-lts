@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Magento
  *
@@ -118,7 +119,8 @@ class Mage_CatalogRule_Model_Action_Index_Refresh
 
         /** @var Mage_Core_Model_Date $coreDate */
         $coreDate  = $this->_factory->getModel('core/date');
-        $timestamp = $coreDate->gmtTimestamp('Today');
+        // $timestamp = $coreDate->gmtTimestamp('Today');
+        $timestamp = Mage::app()->getLocale()->date(null, null, null, true)->get(Zend_Date::TIMESTAMP);
 
         foreach ($this->_app->getWebsites(false) as $website) {
             /** @var Mage_Core_Model_Website $website */
@@ -335,10 +337,10 @@ class Mage_CatalogRule_Model_Action_Index_Refresh
         } else {
             $select->joinInner(
                 array(
-                        'pd' => $this->_resource->getTable(array('catalog/product', $priceAttribute->getBackendType()))
-                    ),
+                    'pd' => $this->_resource->getTable(array('catalog/product', $priceAttribute->getBackendType()))
+                ),
                 'pd.entity_id = rp.product_id AND pd.store_id = 0 AND pd.attribute_id = '
-                        . $priceAttribute->getId(),
+                    . $priceAttribute->getId(),
                 array()
             )
                 ->joinLeft(
@@ -440,10 +442,10 @@ class Mage_CatalogRule_Model_Action_Index_Refresh
                     new Zend_Db_Expr('@group_id'),
                     $nA
                 ) . ' = cppt.grouped_id AND '
-                . $this->_connection->getIfNullSql(
-                    new Zend_Db_Expr('@action_stop'),
-                    new Zend_Db_Expr(0)
-                ) . ' = 0' => '@price := ' . $this->_connection->getCaseSql(
+                    . $this->_connection->getIfNullSql(
+                        new Zend_Db_Expr('@action_stop'),
+                        new Zend_Db_Expr(0)
+                    ) . ' = 0' => '@price := ' . $this->_connection->getCaseSql(
                     $this->_connection->quoteIdentifier('cppt.action_operator'),
                     array(
                         $toPercent => new Zend_Db_Expr('@price * cppt.action_amount/100'),
@@ -660,13 +662,13 @@ class Mage_CatalogRule_Model_Action_Index_Refresh
         $productCondition = $modelCondition->setTable($this->_resource->getTable('catalogrule/affected_product'))
             ->setPkFieldName('product_id');
 
-            $this->_app->dispatchEvent(
-                'catalogrule_after_apply',
-                array(
-                    'product' => $this->_getProduct(),
-                    'product_condition' => $productCondition
-                )
-            );
+        $this->_app->dispatchEvent(
+            'catalogrule_after_apply',
+            array(
+                'product' => $this->_getProduct(),
+                'product_condition' => $productCondition
+            )
+        );
 
         $this->_connection->delete($this->_resource->getTable('catalogrule/affected_product'));
     }
