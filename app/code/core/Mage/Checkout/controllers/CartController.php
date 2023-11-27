@@ -588,6 +588,7 @@ class Mage_Checkout_CartController extends Mage_Core_Controller_Front_Action
         }
 
         $couponCode = (string) $this->getRequest()->getParam('coupon_code');
+        $couponCode = trim($couponCode);
         if ($this->getRequest()->getParam('remove') == 1) {
             $couponCode = '';
         }

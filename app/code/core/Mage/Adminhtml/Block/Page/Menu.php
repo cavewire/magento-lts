@@ -322,6 +322,10 @@ class Mage_Adminhtml_Block_Page_Menu extends Mage_Adminhtml_Block_Template
             $helperName  = (string)$childAttributes['module'];
         }
 
-        return Mage::helper($helperName)->isModuleOutputEnabled();
+        try {
+            return Mage::helper($helperName)->isModuleOutputEnabled();
+        } catch (Throwable $e) {
+            return false;
+        }
     }
 }
