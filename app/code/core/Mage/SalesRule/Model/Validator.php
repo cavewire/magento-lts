@@ -332,6 +332,10 @@ class Mage_SalesRule_Model_Validator extends Mage_Core_Model_Abstract
                 continue;
             }
 
+            if ($rule->getApplyToShipping()) {
+                continue;
+            }
+
             $qty = $this->_getItemQty($item, $rule);
             $rulePercent = min(100, $rule->getDiscountAmount());
 
