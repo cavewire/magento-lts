@@ -270,6 +270,9 @@ class Blowfish extends Base
      */
     var $kl;
 
+    var $mcrypt_mode;
+    var $mcrypt_polyfill_init;
+
     /**
      * The Key Length (in bytes)
      *

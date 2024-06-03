@@ -182,6 +182,9 @@ class Mage_Paypal_Model_Config
      */
     public $centinelDefaultApiUrl = 'https://paypal.cardinalcommerce.com/maps/txns.asp';
 
+    public $active;
+    public $cctypes;
+
     /**
      * Current payment method code
      * @var string
