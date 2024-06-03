@@ -95,7 +95,7 @@ class Cm_RedisSession_Model_Session extends Mage_Core_Model_Mysql4_Session
     protected $_maxLifetime;
     protected $_minLifetime;
     protected $_sessionPrefix;
-
+    protected $_failAfter;
 
     static public $failedLockAttempts = 0; // for debug or informational purposes
 
