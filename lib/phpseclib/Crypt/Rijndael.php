@@ -273,7 +273,7 @@ class Rijndael extends Base
      */
     function _encryptBlock($in)
     {
-        static $tables;
+        // static $tables;
         if (empty($tables)) {
             $tables = &$this->_getTables();
         }
@@ -598,7 +598,7 @@ class Rijndael extends Base
      */
     function &_getTables()
     {
-        static $tables;
+        // static $tables;
         if (empty($tables)) {
             // according to <http://csrc.nist.gov/archive/aes/rijndael/Rijndael-ammended.pdf#page=19> (section 5.2.1),
             // precomputed tables can be used in the mixColumns phase. in that example, they're assigned t0...t3, so
@@ -687,7 +687,7 @@ class Rijndael extends Base
      */
     function &_getInvTables()
     {
-        static $tables;
+        // static $tables;
         if (empty($tables)) {
             $dt3 = array_map('intval', array(
                 0xF4A75051, 0x4165537E, 0x17A4C31A, 0x275E963A, 0xAB6BCB3B, 0x9D45F11F, 0xFA58ABAC, 0xE303934B,
@@ -809,7 +809,7 @@ class Rijndael extends Base
 
             // Generating encrypt code:
             $init_encrypt.= '
-                static $tables;
+                // static $tables;
                 if (empty($tables)) {
                     $tables = &$self->_getTables();
                 }
