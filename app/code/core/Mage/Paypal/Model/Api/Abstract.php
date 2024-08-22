@@ -420,7 +420,7 @@ abstract class Mage_Paypal_Model_Api_Abstract extends Varien_Object
                 if (is_float($value)) {
                     $value = $this->_filterAmount($value);
                 }
-                $request[sprintf($privateFormat, $i)] = $value;
+                $request[sprintf($privateFormat, $i)] = substr($value, 0, 126);
             }
             $i++;
         }
