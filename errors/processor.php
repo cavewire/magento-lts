@@ -133,6 +133,11 @@ class Error_Processor
      * @var stdClass
     */
     protected $_config;
+    
+    protected $_errorDir;
+    protected $_reportDir;
+    protected $_indexDir;
+    protected $reportUrl;
 
     public function __construct()
     {
