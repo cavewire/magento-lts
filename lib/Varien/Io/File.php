@@ -110,8 +110,12 @@ class Varien_Io_File extends Varien_Io_Abstract
      */
     public function destruct()
     {
-        if ($this->_streamHandler) {
+        // Only try to close if we have a valid resource
+        if ($this->_streamHandler && is_resource($this->_streamHandler)) {
             $this->streamClose();
+        } else {
+            // Just nullify the handler if it's not a valid resource
+            $this->_streamHandler = null;
         }
     }
 
@@ -244,15 +248,13 @@ class Varien_Io_File extends Varien_Io_Abstract
      */
     public function streamClose()
     {
-        if (!$this->_streamHandler) {
-            return false;
+        if ($this->_streamHandler) {
+            // Check if it's a valid resource before closing
+            if (is_resource($this->_streamHandler)) {
+                @fclose($this->_streamHandler);
+            }
+            $this->_streamHandler = null;
         }
-
-        if ($this->_streamLocked) {
-            $this->streamUnlock();
-        }
-        @fclose($this->_streamHandler);
-        $this->chmod($this->_streamFileName, $this->_streamChmod);
         return true;
     }
 
