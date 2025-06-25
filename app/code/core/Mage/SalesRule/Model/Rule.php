@@ -212,7 +212,7 @@ class Mage_SalesRule_Model_Rule extends Mage_Rule_Model_Abstract
      */
     protected function _afterSave()
     {
-        $couponCode = trim($this->getCouponCode());
+        $couponCode = trim($this->getCouponCode() ?? '');
         if (strlen($couponCode)
             && $this->getCouponType() == self::COUPON_TYPE_SPECIFIC
             && !$this->getUseAutoGeneration()

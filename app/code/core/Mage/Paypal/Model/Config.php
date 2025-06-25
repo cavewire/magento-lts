@@ -199,6 +199,16 @@ class Mage_Paypal_Model_Config
     protected $_storeId = null;
 
     /**
+     * Dynamic properties to prevent PHP 8.2+ deprecation warnings
+     */
+    public $sort_order;
+    public $businessAccount;
+    public $business_account;
+    public $allowspecific;
+    public $min_order_total;
+    public $max_order_total;
+
+    /**
      * Instructions for generating proper BN code
      *
      * @var array
