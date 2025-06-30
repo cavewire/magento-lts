@@ -609,17 +609,22 @@ class Mage_Paypal_Model_Express_Checkout
         $quote->setBillingAddress($billingAddress);
 
         // Set customer name from billing address for PayPal Express orders
-        if ($quote->getCustomerIsGuest()) {
-            $customerFirstname = $billingAddress->getFirstname();
-            $customerLastname = $billingAddress->getLastname();
+        $customerFirstname = $billingAddress->getFirstname();
+        $customerLastname = $billingAddress->getLastname();
+        
+        Mage::log("PayPal Express: Customer isGuest: " . ($quote->getCustomerIsGuest() ? 'yes' : 'no') . 
+                 ", Current customer name: '{$quote->getCustomerFirstname()} {$quote->getCustomerLastname()}'", 
+                 null, 'paypal_shipping.log');
+        
+        if ($customerFirstname || $customerLastname) {
+            $quote->setCustomerFirstname($customerFirstname)
+                  ->setCustomerLastname($customerLastname);
             
-            if ($customerFirstname || $customerLastname) {
-                $quote->setCustomerFirstname($customerFirstname)
-                      ->setCustomerLastname($customerLastname);
-                
-                Mage::log("PayPal Express: Set customer name to '{$customerFirstname} {$customerLastname}'", 
-                         null, 'paypal_shipping.log');
-            }
+            Mage::log("PayPal Express: Set customer name to '{$customerFirstname} {$customerLastname}'", 
+                     null, 'paypal_shipping.log');
+        } else {
+            Mage::log("PayPal Express: No customer name available from billing address", 
+                     null, 'paypal_shipping.log');
         }
 
         // import payment info
