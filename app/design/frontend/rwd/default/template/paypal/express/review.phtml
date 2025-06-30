@@ -69,7 +69,7 @@
                                     </select>
                                 </fieldset>
                                 <p class="actions">
-                                    <button id="update_shipping_method_submit" type="submit" class="button"><span><span><?php echo $this->__('Update Shipping Method') ?></span></span></button>
+                                    <button id="update_shipping_method_submit" type="submit" class="button2 btn-update"><span><span><?php echo $this->__('Update Shipping Method') ?></span></span></button>
                                 </p>
                             <?php else: ?>
                                 <p><strong><?php echo $this->__('Sorry, no quotes are available for this order at this time.') ?></strong></p>
@@ -108,12 +108,16 @@
 </div>
 <form method="post" id="order_review_form" action="<?php echo $this->getPlaceOrderUrl() ?>">
     <?php echo $this->getChildHtml('agreements'); ?>
-    <div class="buttons-set buttons-set-order" id="review-buttons-container">
-        <button type="button" id="review_button" value="<?php echo $this->__('Place Order') ?>" class="button btn-checkout"><span><span><?php echo $this->__('Place Order') ?></span></span></button>
-        <button type="button" id="review_submit" value="<?php echo $this->__('Place Order') ?>" class="button btn-checkout"><span><span><?php echo $this->__('Place Order') ?></span></span></button>
-        <span class="please-wait" id="review-please-wait" style="display:none;">
-            <img src="<?php echo $this->getSkinUrl('images/opc-ajax-loader.gif') ?>" alt="<?php echo $this->quoteEscape($this->__('Submitting order information...')) ?>" title="<?php echo $this->quoteEscape($this->__('Submitting order information...')) ?>" class="v-middle" /> <?php echo $this->__('Submitting order information...') ?>
-        </span>
+    <div class="cart-totals-wrapper">
+        <div class="cart-totals">
+            <div class="buttons-set buttons-set-order" id="review-buttons-container">
+                <button type="button" id="review_button" value="<?php echo $this->__('Place Order') ?>" class="button btn-proceed-checkout btn-checkout"><span><span><?php echo $this->__('Place Order') ?></span></span></button>
+                <button type="button" id="review_submit" value="<?php echo $this->__('Place Order') ?>" class="button btn-proceed-checkout btn-checkout"><span><span><?php echo $this->__('Place Order') ?></span></span></button>
+                <span class="please-wait" id="review-please-wait" style="display:none;">
+                    <img src="<?php echo $this->getSkinUrl('images/opc-ajax-loader.gif') ?>" alt="<?php echo $this->quoteEscape($this->__('Submitting order information...')) ?>" title="<?php echo $this->quoteEscape($this->__('Submitting order information...')) ?>" class="v-middle" /> <?php echo $this->__('Submitting order information...') ?>
+                </span>
+            </div>
+        </div>
     </div>
 </form>
 <script type="text/javascript">

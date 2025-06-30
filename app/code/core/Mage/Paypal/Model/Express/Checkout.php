@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Magento
  *
@@ -354,14 +355,43 @@ class Mage_Paypal_Model_Express_Checkout
         ;
 
         // add shipping options if needed and line items are available
+        Mage::log("PayPal Express Debug: lineItemsEnabled=" . ($this->_config->lineItemsEnabled ? 'true' : 'false') . 
+                 ", transferShippingOptions=" . ($this->_config->transferShippingOptions ? 'true' : 'false') . 
+                 ", paypalCartItems=" . count($paypalCart->getItems()) . 
+                 ", isVirtual=" . ($this->_quote->getIsVirtual() ? 'true' : 'false') . 
+                 ", hasNominalItems=" . ($this->_quote->hasNominalItems() ? 'true' : 'false'), 
+                 null, 'paypal_shipping.log');
+        
         if ($this->_config->lineItemsEnabled && $this->_config->transferShippingOptions && $paypalCart->getItems()) {
             if (!$this->_quote->getIsVirtual() && !$this->_quote->hasNominalItems()) {
-                if ($options = $this->_prepareShippingOptions($address, true)) {
-                    $this->_api->setShippingOptionsCallbackUrl(
-                        Mage::getUrl('*/*/shippingOptionsCallback', array('quote_id' => $this->_quote->getId()))
-                    )->setShippingOptions($options);
-                }
+                // Create shipping method mapping for all available shipping methods
+                $this->_createShippingMethodMapping();
+                
+                // Provide a single placeholder option to enable callbacks
+                // Must be default to satisfy PayPal's requirement, callbacks will provide real options
+                $placeholderOption = new Varien_Object(array(
+                    'is_default' => true, // Required by PayPal
+                    'name'       => '', // Empty to minimize display
+                    'code'       => 'callback_placeholder',
+                    'amount'     => 0.00,
+                ));
+                
+                $callbackUrl = Mage::getUrl('paypal/express/shippingOptionsCallback', array(
+                    'quote_id' => $this->_quote->getId(),
+                    '_secure' => true
+                ));
+                $this->_api->setShippingOptionsCallbackUrl($callbackUrl)
+                          ->setShippingOptions(array($placeholderOption));
+                
+                Mage::log("PayPal Express: Using placeholder option to force callback usage", 
+                         null, 'paypal_shipping.log');
+            } else {
+                Mage::log("PayPal Express: Skipped shipping options - virtual quote or nominal items", 
+                         null, 'paypal_shipping.log');
             }
+        } else {
+            Mage::log("PayPal Express: Shipping options not configured - check conditions above", 
+                     null, 'paypal_shipping.log');
         }
 
         // add recurring payment profiles information
@@ -427,17 +457,34 @@ class Mage_Paypal_Model_Express_Checkout
 
         // import shipping address
         $exportedShippingAddress = $this->_api->getExportedShippingAddress();
+        
+        
         if (!$quote->getIsVirtual()) {
             $shippingAddress = $quote->getShippingAddress();
             if ($shippingAddress) {
                 if ($exportedShippingAddress) {
+                    
                     $this->_setExportedAddressData($shippingAddress, $exportedShippingAddress);
 
+                    // Always fix name duplication for PayPal Express - regardless of button flag
+                    
+                    // Fix name duplication - PayPal may send full name in firstname field
+                    $firstname = trim($shippingAddress->getFirstname());
+                    $lastname = trim($shippingAddress->getLastname());
+                    
+                    // If firstname contains the full name and lastname is just the last part, split it properly
+                    if ($firstname && $lastname && strpos($firstname, $lastname) !== false && $firstname !== $lastname) {
+                        // Firstname contains lastname, split properly
+                        $nameParts = explode(' ', $firstname, 2);
+                        $shippingAddress->setFirstname($nameParts[0]);
+                        $shippingAddress->setLastname(isset($nameParts[1]) ? $nameParts[1] : $lastname);
+                        
+                        Mage::log("PayPal Express: Fixed shipping name duplication", null, 'paypal_shipping.log');
+                    }
+                    
                     if ($quote->getPayment()->getAdditionalInformation(self::PAYMENT_INFO_BUTTON) == 1) {
-                        // PayPal doesn't provide detailed shipping info: prefix, middlename, lastname, suffix
                         $shippingAddress->setPrefix(null);
                         $shippingAddress->setMiddlename(null);
-                        $shippingAddress->setLastname(null);
                         $shippingAddress->setSuffix(null);
                     }
 
@@ -448,10 +495,45 @@ class Mage_Paypal_Model_Express_Checkout
                 // import shipping method
                 $code = '';
                 if ($this->_api->getShippingRateCode()) {
-                    if ($code = $this->_matchShippingMethodCode($shippingAddress, $this->_api->getShippingRateCode())) {
-                         // possible bug of double collecting rates :-/
-                        $shippingAddress->setShippingMethod($code)->setCollectShippingRates(true);
+                    $shippingRateCode = $this->_api->getShippingRateCode();
+                    
+                    Mage::log("PayPal Express: returnFromPaypal - received shipping rate code: '{$shippingRateCode}'", 
+                             null, 'paypal_shipping.log');
+                    
+                    // Map clean title back to original shipping method code
+                    $originalCode = $this->_getOriginalShippingMethodCode($shippingRateCode);
+                    if ($originalCode) {
+                        $shippingRateCode = $originalCode;
+                        Mage::log("PayPal Express: Mapped shipping method '{$this->_api->getShippingRateCode()}' back to '{$originalCode}'", 
+                                 null, 'paypal_shipping.log');
+                    } else {
+                        Mage::log("PayPal Express: No mapping found for '{$shippingRateCode}', using as-is", 
+                                 null, 'paypal_shipping.log');
                     }
+                    
+                    Mage::log("PayPal Express: Attempting to set shipping method code: '{$shippingRateCode}'", 
+                             null, 'paypal_shipping.log');
+                    
+                    // Since we have the correct shipping method code from mapping, set it directly
+                    if ($shippingRateCode && $shippingRateCode !== 'tbd_shipping') {
+                        $shippingAddress->setShippingMethod($shippingRateCode);
+                        $code = $shippingRateCode;
+                        Mage::log("PayPal Express: Successfully set shipping method: '{$code}'", 
+                                 null, 'paypal_shipping.log');
+                    } else {
+                        // Only try matching if we don't have a valid mapped code
+                        if ($code = $this->_matchShippingMethodCode($shippingAddress, $shippingRateCode)) {
+                            $shippingAddress->setShippingMethod($code)->setCollectShippingRates(true);
+                            Mage::log("PayPal Express: Matched and set shipping method: '{$code}'", 
+                                     null, 'paypal_shipping.log');
+                        } else {
+                            Mage::log("PayPal Express: FAILED to match shipping method code: '{$shippingRateCode}'", 
+                                     null, 'paypal_shipping.log');
+                        }
+                    }
+                } else {
+                    Mage::log("PayPal Express: No shipping rate code received from PayPal", 
+                             null, 'paypal_shipping.log');
                 }
                 $quote->getPayment()->setAdditionalInformation(
                     self::PAYMENT_INFO_TRANSPORT_SHIPPING_METHOD,
@@ -476,9 +558,58 @@ class Mage_Paypal_Model_Express_Checkout
             $billingAddress = $quote->getBillingAddress();
         }
         $exportedBillingAddress = $this->_api->getExportedBillingAddress();
+        
+        
         $this->_setExportedAddressData($billingAddress, $exportedBillingAddress);
+        
+        // Fix billing address for PayPal Express
+        // Debug: Log the billing address data before processing
+        Mage::log("PayPal Express: Billing address before fix - " .
+                 "firstname: '{$billingAddress->getFirstname()}', " .
+                 "lastname: '{$billingAddress->getLastname()}', " .
+                 "street: '{$billingAddress->getStreet1()}', " .
+                 "city: '{$billingAddress->getCity()}'", 
+                 null, 'paypal_shipping.log');
+        
+        // If billing address is incomplete (missing street/city), copy from shipping
+        if (empty($billingAddress->getStreet1()) && empty($billingAddress->getCity()) && !$quote->getIsVirtual()) {
+            $shippingAddress = $quote->getShippingAddress();
+            if ($shippingAddress && $shippingAddress->getStreet1()) {
+                // Copy address details from shipping to billing
+                $billingAddress->setStreet($shippingAddress->getStreet())
+                              ->setCity($shippingAddress->getCity())
+                              ->setRegion($shippingAddress->getRegion())
+                              ->setRegionId($shippingAddress->getRegionId())
+                              ->setPostcode($shippingAddress->getPostcode())
+                              ->setCountryId($shippingAddress->getCountryId());
+                
+                Mage::log("PayPal Express: Copied address details from shipping to billing", 
+                         null, 'paypal_shipping.log');
+            }
+        }
+        
+        if ($quote->getPayment()->getAdditionalInformation(self::PAYMENT_INFO_BUTTON) == 1) {
+            $billingAddress->setPrefix(null);
+            $billingAddress->setMiddlename(null);
+            $billingAddress->setSuffix(null);
+        }
+        
         $billingAddress->setCustomerNotes($exportedBillingAddress->getData('note'));
         $quote->setBillingAddress($billingAddress);
+
+        // Set customer name from billing address for PayPal Express orders
+        if ($quote->getCustomerIsGuest()) {
+            $customerFirstname = $billingAddress->getFirstname();
+            $customerLastname = $billingAddress->getLastname();
+            
+            if ($customerFirstname || $customerLastname) {
+                $quote->setCustomerFirstname($customerFirstname)
+                      ->setCustomerLastname($customerLastname);
+                
+                Mage::log("PayPal Express: Set customer name to '{$customerFirstname} {$customerLastname}'", 
+                         null, 'paypal_shipping.log');
+            }
+        }
 
         // import payment info
         $payment = $quote->getPayment();
@@ -800,12 +931,27 @@ class Mage_Paypal_Model_Express_Checkout
         Mage_Sales_Model_Quote_Address $address,
         $mayReturnEmpty = false, $calculateTax = false
     ) {
+        Mage::log("PayPal Express: _prepareShippingOptions called - Country: " . $address->getCountryId() . 
+                 ", Region: " . $address->getRegionId() . 
+                 ", City: " . $address->getCity() . 
+                 ", Postcode: " . $address->getPostcode(), 
+                 null, 'paypal_shipping.log');
+        
         $options = array(); $i = 0; $iMin = false; $min = false;
         $userSelectedOption = null;
 
-        foreach ($address->getGroupedAllShippingRates() as $group) {
+        $allShippingRates = $address->getGroupedAllShippingRates();
+        Mage::log("PayPal Express: Found " . count($allShippingRates) . " shipping rate groups", 
+                 null, 'paypal_shipping.log');
+        
+        foreach ($allShippingRates as $carrierCode => $group) {
+            Mage::log("PayPal Express: Carrier $carrierCode has " . count($group) . " rates", 
+                     null, 'paypal_shipping.log');
             foreach ($group as $rate) {
                 $amount = (float)$rate->getPrice();
+                Mage::log("PayPal Express: Rate " . $rate->getCode() . " - $" . $amount . 
+                         ($rate->getErrorMessage() ? " (ERROR: " . $rate->getErrorMessage() . ")" : ""), 
+                         null, 'paypal_shipping.log');
                 if ($rate->getErrorMessage()) {
                     continue;
                 }
@@ -813,12 +959,29 @@ class Mage_Paypal_Model_Express_Checkout
                 $amountExclTax = Mage::helper('tax')->getShippingPrice($amount, false, $address);
                 $amountInclTax = Mage::helper('tax')->getShippingPrice($amount, true, $address);
 
+                // Clean shipping method title - remove carrier codes completely
+                $cleanTitle = $rate->getMethodTitle();
+                // Remove common carrier prefixes and method codes
+                $cleanTitle = preg_replace('/^(tablerate_\w+\s*|flatrate_\w+\s*|freeshipping_\w+\s*)/i', '', $cleanTitle);
+                $cleanTitle = trim($cleanTitle);
+                if (empty($cleanTitle)) {
+                    $cleanTitle = $rate->getMethodTitle();
+                }
+
                 $options[$i] = new Varien_Object(array(
                     'is_default' => $isDefault,
-                    'name'       => trim("{$rate->getCarrier()} - {$rate->getMethodTitle()}", ' -'),
-                    'code'       => $rate->getCode(),
+                    'name'       => '', // Empty to avoid duplication 
+                    'code'       => $cleanTitle, // Use clean title as code so PayPal displays it nicely
                     'amount'     => $amountExclTax,
                 ));
+                
+                // Store original code for later matching
+                $options[$i]->setData('original_code', $rate->getCode());
+                
+                // Store mapping for later lookup when PayPal returns the selection
+                // Also store with trimmed version to handle potential spacing issues
+                $this->_storeShippingMethodMapping($cleanTitle, $rate->getCode());
+                $this->_storeShippingMethodMapping(trim($cleanTitle), $rate->getCode());
                 if ($calculateTax) {
                     $options[$i]->setTaxAmount(
                         $amountInclTax - $amountExclTax
@@ -837,14 +1000,24 @@ class Mage_Paypal_Model_Express_Checkout
         }
 
         if ($mayReturnEmpty && is_null($userSelectedOption)) {
-            $options[] = new Varien_Object(array(
-                'is_default' => true,
-                'name'       => Mage::helper('paypal')->__('N/A'),
-                'code'       => 'no_rate',
-                'amount'     => 0.00,
-            ));
-            if ($calculateTax) {
-                $options[$i]->setTaxAmount($address->getTaxAmount());
+            if (count($options) > 0) {
+                // Don't set any option as default to avoid PayPal total mismatch
+                // Customer will be required to select shipping in PayPal
+                Mage::log("PayPal Express: " . count($options) . " shipping options available, none pre-selected to avoid total mismatch", 
+                         null, 'paypal_shipping.log');
+            } else {
+                // Use TBD shipping option instead of "no_rate" to enable callbacks
+                $options[] = new Varien_Object(array(
+                    'is_default' => true,
+                    'name'       => 'Shipping (To Be Determined)',
+                    'code'       => 'tbd_shipping',
+                    'amount'     => 0.00,
+                ));
+                if ($calculateTax) {
+                    $options[$i]->setTaxAmount($address->getTaxAmount());
+                }
+                Mage::log("PayPal Express: No shipping options available, using TBD shipping to enable callbacks", 
+                         null, 'paypal_shipping.log');
             }
         } elseif (is_null($userSelectedOption) && isset($options[$iMin])) {
             $options[$iMin]->setIsDefault(true);
@@ -861,6 +1034,140 @@ class Mage_Paypal_Model_Express_Checkout
         }
 
         return $options;
+    }
+
+
+    /**
+     * Create shipping method mapping for all available shipping methods in the system
+     */
+    protected function _createShippingMethodMapping()
+    {
+        // Get all active shipping methods from configuration
+        $shippingMethods = Mage::getSingleton('shipping/config')->getActiveCarriers();
+        $mapping = array();
+        
+        foreach ($shippingMethods as $carrierCode => $carrierModel) {
+            if ($carrierModel->isActive()) {
+                // Get all methods for this carrier
+                $methods = $carrierModel->getAllowedMethods();
+                if ($methods) {
+                    foreach ($methods as $methodCode => $methodTitle) {
+                        $fullCode = $carrierCode . '_' . $methodCode;
+                        
+                        // Clean the title
+                        $cleanTitle = $methodTitle;
+                        $cleanTitle = preg_replace('/^(tablerate_\w+\s*|flatrate_\w+\s*|freeshipping_\w+\s*)/i', '', $cleanTitle);
+                        $cleanTitle = trim($cleanTitle);
+                        if (empty($cleanTitle)) {
+                            $cleanTitle = $methodTitle;
+                        }
+                        
+                        // Store the mapping
+                        $mapping[$cleanTitle] = $fullCode;
+                        $mapping[trim($cleanTitle)] = $fullCode; // Also store trimmed version
+                        
+                        Mage::log("PayPal Express: Pre-mapped '{$cleanTitle}' => '{$fullCode}'", 
+                                 null, 'paypal_shipping.log');
+                    }
+                }
+            }
+        }
+        
+        // Store in quote payment additional information
+        $payment = $this->_quote->getPayment();
+        $payment->setAdditionalInformation('paypal_shipping_mapping', $mapping);
+        
+        // Also store in PayPal session as backup
+        $session = Mage::getSingleton('paypal/session');
+        $session->setData('shipping_method_mapping', $mapping);
+        
+        Mage::log("PayPal Express: Created mapping for " . count($mapping) . " shipping methods", 
+                 null, 'paypal_shipping.log');
+    }
+
+    /**
+     * Store shipping method mapping for clean titles to original codes
+     *
+     * @param string $cleanTitle
+     * @param string $originalCode
+     */
+    protected function _storeShippingMethodMapping($cleanTitle, $originalCode)
+    {
+        // Store in quote payment additional information for persistence across PayPal redirect
+        $payment = $this->_quote->getPayment();
+        $mapping = $payment->getAdditionalInformation('paypal_shipping_mapping') ?: array();
+        $mapping[$cleanTitle] = $originalCode;
+        $payment->setAdditionalInformation('paypal_shipping_mapping', $mapping);
+        
+        // Also store in PayPal session as backup
+        $session = Mage::getSingleton('paypal/session');
+        $sessionMapping = $session->getData('shipping_method_mapping') ?: array();
+        $sessionMapping[$cleanTitle] = $originalCode;
+        $session->setData('shipping_method_mapping', $sessionMapping);
+        
+        Mage::log("PayPal Express: Stored mapping '{$cleanTitle}' => '{$originalCode}' in quote and session", 
+                 null, 'paypal_shipping.log');
+    }
+
+    /**
+     * Get original shipping method code from clean title
+     *
+     * @param string $cleanTitle
+     * @return string|null
+     */
+    protected function _getOriginalShippingMethodCode($cleanTitle)
+    {
+        // Trim the input to handle spacing issues
+        $cleanTitle = trim($cleanTitle);
+        
+        // Try to get mapping from quote payment additional information first
+        $payment = $this->_quote->getPayment();
+        $mapping = $payment->getAdditionalInformation('paypal_shipping_mapping') ?: array();
+        
+        // If not found in quote, try PayPal session as backup
+        if (empty($mapping)) {
+            $session = Mage::getSingleton('paypal/session');
+            $mapping = $session->getData('shipping_method_mapping') ?: array();
+        }
+        
+        Mage::log("PayPal Express: Looking for mapping of '{$cleanTitle}' in: " . print_r($mapping, true), 
+                 null, 'paypal_shipping.log');
+        
+        if (isset($mapping[$cleanTitle])) {
+            Mage::log("PayPal Express: Found mapping '{$cleanTitle}' => '{$mapping[$cleanTitle]}'", 
+                     null, 'paypal_shipping.log');
+            return $mapping[$cleanTitle];
+        }
+        
+        // Try to find a partial match (case-insensitive, trimmed)
+        foreach ($mapping as $storedClean => $storedOriginal) {
+            if (trim(strtolower($storedClean)) === strtolower($cleanTitle)) {
+                Mage::log("PayPal Express: Found case-insensitive mapping '{$cleanTitle}' => '{$storedOriginal}'", 
+                         null, 'paypal_shipping.log');
+                return $storedOriginal;
+            }
+        }
+        
+        // Fallback: try to find a match by checking if any stored original codes match this clean title
+        foreach ($mapping as $storedClean => $storedOriginal) {
+            if ($storedClean === $cleanTitle || $storedOriginal === $cleanTitle) {
+                Mage::log("PayPal Express: Found fallback mapping '{$cleanTitle}' => '{$storedOriginal}'", 
+                         null, 'paypal_shipping.log');
+                return $storedOriginal;
+            }
+        }
+        
+        Mage::log("PayPal Express: No mapping found for '{$cleanTitle}' - available mappings: " . print_r(array_keys($mapping), true), 
+                 null, 'paypal_shipping.log');
+        
+        // Last resort: if the cleanTitle looks like an original shipping method code, use it as-is
+        if (strpos($cleanTitle, '_') !== false) {
+            Mage::log("PayPal Express: Using '{$cleanTitle}' as-is (appears to be original code)", 
+                     null, 'paypal_shipping.log');
+            return $cleanTitle;
+        }
+        
+        return null;
     }
 
     /**
