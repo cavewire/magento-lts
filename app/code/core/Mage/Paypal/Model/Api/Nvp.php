@@ -600,10 +600,24 @@ class Mage_Paypal_Model_Api_Nvp extends Mage_Paypal_Model_Api_Abstract
             $request = $this->_importAddresses($request);
             $request['ADDROVERRIDE'] = 1;
         } elseif ($options && (count($options) <= 10)) { // doesn't support more than 10 shipping options
-            $request['CALLBACK'] = $this->getShippingOptionsCallbackUrl();
+            $callbackUrl = $this->getShippingOptionsCallbackUrl();
+            Mage::log("PayPal API: Setting CALLBACK in request: " . $callbackUrl, null, 'paypal_shipping.log');
+            Mage::log("PayPal API: Options count: " . count($options), null, 'paypal_shipping.log');
+            
+            $request['CALLBACK'] = $callbackUrl;
             $request['CALLBACKTIMEOUT'] = 6; // max value
             $request['MAXAMT'] = $request['AMT'] + 999.00; // it is impossible to calculate max amount
             $this->_exportShippingOptions($request);
+            
+            // Log what shipping options are being exported
+            foreach ($options as $i => $option) {
+                Mage::log("PayPal API: Exporting option $i - Code: " . $option->getCode() . 
+                         ", Name: " . $option->getName() . ", Amount: " . $option->getAmount() . 
+                         ", Default: " . ($option->getIsDefault() ? 'yes' : 'no'), null, 'paypal_shipping.log');
+            }
+        } else {
+            $optionsInfo = $options ? count($options) . " options" : "no options";
+            Mage::log("PayPal API: NOT setting callback - Options: " . $optionsInfo, null, 'paypal_shipping.log');
         }
 
         // add recurring profiles information
@@ -614,6 +628,15 @@ class Mage_Paypal_Model_Api_Nvp extends Mage_Paypal_Model_Api_Abstract
             $i++;
         }
 
+        // Log the final request being sent to PayPal
+        if (isset($request['CALLBACK'])) {
+            Mage::log("PayPal API: Final request includes CALLBACK: " . $request['CALLBACK'], null, 'paypal_shipping.log');
+            Mage::log("PayPal API: CALLBACKTIMEOUT: " . (isset($request['CALLBACKTIMEOUT']) ? $request['CALLBACKTIMEOUT'] : 'not set'), null, 'paypal_shipping.log');
+            Mage::log("PayPal API: MAXAMT: " . (isset($request['MAXAMT']) ? $request['MAXAMT'] : 'not set'), null, 'paypal_shipping.log');
+        } else {
+            Mage::log("PayPal API: Final request does NOT include CALLBACK", null, 'paypal_shipping.log');
+        }
+        
         $response = $this->call(self::SET_EXPRESS_CHECKOUT, $request);
         $this->_importFromResponse($this->_setExpressCheckoutResponse, $response);
     }

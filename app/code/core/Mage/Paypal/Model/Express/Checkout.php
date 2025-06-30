@@ -380,8 +380,20 @@ class Mage_Paypal_Model_Express_Checkout
                     'quote_id' => $this->_quote->getId(),
                     '_secure' => true
                 ));
+                
+                Mage::log("PayPal Express: Setting callback URL: " . $callbackUrl, null, 'paypal_shipping.log');
+                Mage::log("PayPal Express: Quote ID: " . $this->_quote->getId(), null, 'paypal_shipping.log');
+                
                 $this->_api->setShippingOptionsCallbackUrl($callbackUrl)
                           ->setShippingOptions(array($placeholderOption));
+                
+                // Verify what was actually set
+                if (method_exists($this->_api, 'getShippingOptionsCallbackUrl')) {
+                    $verifyUrl = $this->_api->getShippingOptionsCallbackUrl();
+                    Mage::log("PayPal Express: Verified callback URL in API: " . $verifyUrl, null, 'paypal_shipping.log');
+                } else {
+                    Mage::log("PayPal Express: Cannot verify callback URL - getter method not available", null, 'paypal_shipping.log');
+                }
                 
                 Mage::log("PayPal Express: Using placeholder option to force callback usage", 
                          null, 'paypal_shipping.log');
@@ -651,6 +663,8 @@ class Mage_Paypal_Model_Express_Checkout
      */
     public function getShippingOptionsCallbackResponse(array $request)
     {
+        Mage::log("PayPal Express: Callback received - Request: " . print_r($request, true), null, 'paypal_shipping.log');
+        
         // prepare debug data
         $logger = Mage::getModel('core/log_adapter', 'payment_' . $this->_methodType . '.log');
         $debugData = array('request' => $request, 'response' => array());
@@ -660,6 +674,9 @@ class Mage_Paypal_Model_Express_Checkout
             $this->_getApi();
             $address = $this->_api->prepareShippingOptionsCallbackAddress($request);
             $quoteAddress = $this->_quote->getShippingAddress();
+            
+            Mage::log("PayPal Express: Callback address prepared - Country: " . ($address ? $address->getCountryId() : 'none') . 
+                     ", Postcode: " . ($address ? $address->getPostcode() : 'none'), null, 'paypal_shipping.log');
 
             // compare addresses, calculate shipping rates and prepare response
             $options = array();
@@ -669,14 +686,27 @@ class Mage_Paypal_Model_Express_Checkout
                 }
                 $quoteAddress->setCollectShippingRates(true)->collectTotals();
                 $options = $this->_prepareShippingOptions($quoteAddress, false, true);
+                
+                Mage::log("PayPal Express: Callback prepared " . count($options) . " shipping options", null, 'paypal_shipping.log');
+                foreach ($options as $option) {
+                    Mage::log("PayPal Express: Callback option - Code: " . $option->getCode() . 
+                             ", Name: " . $option->getName() . ", Amount: " . $option->getAmount(), null, 'paypal_shipping.log');
+                }
+            } else {
+                Mage::log("PayPal Express: Callback conditions not met - Address: " . ($address ? 'yes' : 'no') . 
+                         ", Quote Address: " . ($quoteAddress ? 'yes' : 'no') . 
+                         ", Virtual: " . ($this->_quote->getIsVirtual() ? 'yes' : 'no'), null, 'paypal_shipping.log');
             }
+            
             $response = $this->_api->setShippingOptions($options)->formatShippingOptionsCallback();
+            Mage::log("PayPal Express: Callback response: " . $response, null, 'paypal_shipping.log');
 
             // log request and response
             $debugData['response'] = $response;
             $logger->log($debugData);
             return $response;
         } catch (Exception $e) {
+            Mage::log("PayPal Express: Callback error: " . $e->getMessage(), null, 'paypal_shipping.log');
             $logger->log($debugData);
             throw $e;
         }
