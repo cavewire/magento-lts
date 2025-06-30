@@ -315,7 +315,17 @@ class Mage_CatalogRule_Model_Resource_Rule extends Mage_Rule_Model_Resource_Abst
                         );
 
                         if (count($rows) == 1000) {
-                            $write->insertMultiple($this->getTable('catalogrule/rule_product'), $rows);
+                            try {
+                                $write->insertMultiple($this->getTable('catalogrule/rule_product'), $rows);
+                            } catch (Exception $e) {
+                                if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
+                                    // Handle duplicate key error by using INSERT IGNORE
+                                    Mage::log("Catalog rule duplicate key constraint ignored for batch insert: " . $e->getMessage(), Zend_Log::INFO);
+                                    $this->_insertIgnoreDuplicates($write, $this->getTable('catalogrule/rule_product'), $rows);
+                                } else {
+                                    throw $e;
+                                }
+                            }
                             $rows = array();
                         }
                     }
@@ -323,7 +333,40 @@ class Mage_CatalogRule_Model_Resource_Rule extends Mage_Rule_Model_Resource_Abst
             }
 
             if (!empty($rows)) {
-                $write->insertMultiple($this->getTable('catalogrule/rule_product'), $rows);
+                try {
+                    $write->insertMultiple($this->getTable('catalogrule/rule_product'), $rows);
+                } catch (Exception $e) {
+                    if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
+                        // Handle duplicate key error by using INSERT IGNORE
+                        Mage::log("Catalog rule duplicate key constraint ignored for final insert: " . $e->getMessage(), Zend_Log::INFO);
+                        $this->_insertIgnoreDuplicates($write, $this->getTable('catalogrule/rule_product'), $rows);
+                    } else {
+                        throw $e;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Insert rows while ignoring duplicate key constraints
+     *
+     * @param Varien_Db_Adapter_Interface $write
+     * @param string $table
+     * @param array $rows
+     */
+    protected function _insertIgnoreDuplicates($write, $table, $rows)
+    {
+        foreach ($rows as $row) {
+            try {
+                $write->insert($table, $row);
+            } catch (Exception $e) {
+                if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
+                    // Skip duplicate entries silently
+                    continue;
+                } else {
+                    throw $e;
+                }
             }
         }
     }

@@ -126,13 +126,25 @@ abstract class Mage_Paypal_Controller_Express_Abstract extends Mage_Core_Control
      */
     public function shippingOptionsCallbackAction()
     {
+        Mage::log("PayPal Express: Callback action started", null, 'paypal_shipping.log');
         try {
             $quoteId = $this->getRequest()->getParam('quote_id');
+            Mage::log("PayPal Express: Callback for quote ID: " . $quoteId, null, 'paypal_shipping.log');
+            
             $this->_quote = Mage::getModel('sales/quote')->load($quoteId);
+            if (!$this->_quote->getId()) {
+                Mage::log("PayPal Express: ERROR - Quote not found for ID: " . $quoteId, null, 'paypal_shipping.log');
+                $this->getResponse()->setBody('Quote not found');
+                return;
+            }
+            
             $this->_initCheckout();
             $response = $this->_checkout->getShippingOptionsCallbackResponse($this->getRequest()->getParams());
+            Mage::log("PayPal Express: Callback sending response: " . $response, null, 'paypal_shipping.log');
             $this->getResponse()->setBody($response);
         } catch (Exception $e) {
+            Mage::log("PayPal Express: Callback exception: " . $e->getMessage(), null, 'paypal_shipping.log');
+            Mage::log("PayPal Express: Callback stack trace: " . $e->getTraceAsString(), null, 'paypal_shipping.log');
             Mage::logException($e);
         }
     }
