@@ -376,12 +376,11 @@ class Mage_Paypal_Model_Express_Checkout
                     'amount'     => 0.00,
                 ));
                 
-                $callbackUrl = Mage::getUrl('paypal/express/shippingOptionsCallback', array(
-                    'quote_id' => $this->_quote->getId(),
-                    '_secure' => true
-                ));
+                // Get the secure base URL and build callback URL
+                $secureBaseUrl = Mage::app()->getStore()->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_LINK, true);
+                $callbackUrl = $secureBaseUrl . 'paypal/express/shippingOptionsCallback/quote_id/' . $this->_quote->getId() . '/';
                 
-                Mage::log("PayPal Express: Setting callback URL: " . $callbackUrl, null, 'paypal_shipping.log');
+                Mage::log("PayPal Express: Setting callback URL--: " . $callbackUrl, null, 'paypal_shipping.log');
                 Mage::log("PayPal Express: Quote ID: " . $this->_quote->getId(), null, 'paypal_shipping.log');
                 
                 $this->_api->setShippingOptionsCallbackUrl($callbackUrl)
