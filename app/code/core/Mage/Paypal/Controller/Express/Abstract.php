@@ -138,6 +138,24 @@ abstract class Mage_Paypal_Controller_Express_Abstract extends Mage_Core_Control
                 return;
             }
             
+            // Log quote details for debugging
+            Mage::log("PayPal Express: Quote has " . $this->_quote->getItemsCount() . " items", null, 'paypal_shipping.log');
+            Mage::log("PayPal Express: Quote has error: " . ($this->_quote->getHasError() ? 'Yes' : 'No'), null, 'paypal_shipping.log');
+            
+            // Check if quote has items before initializing checkout
+            if (!$this->_quote->hasItems() || $this->_quote->getHasError()) {
+                Mage::log("PayPal Express: ERROR - Quote has no items or has error", null, 'paypal_shipping.log');
+                if ($this->_quote->getHasError()) {
+                    $errors = $this->_quote->getErrors();
+                    foreach ($errors as $error) {
+                        Mage::log("PayPal Express: Quote error: " . $error->getText(), null, 'paypal_shipping.log');
+                    }
+                }
+                $this->getResponse()->setHeader('HTTP/1.1','403 Forbidden');
+                $this->getResponse()->setBody('CALLBACKFAILURE');
+                return;
+            }
+            
             $this->_initCheckout();
             $response = $this->_checkout->getShippingOptionsCallbackResponse($this->getRequest()->getParams());
             Mage::log("PayPal Express: Callback sending response: " . $response, null, 'paypal_shipping.log');
