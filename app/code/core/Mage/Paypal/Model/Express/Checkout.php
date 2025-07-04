@@ -528,8 +528,16 @@ class Mage_Paypal_Model_Express_Checkout
                     // Since we have the correct shipping method code from mapping, set it directly
                     if ($shippingRateCode && $shippingRateCode !== 'tbd_shipping') {
                         $shippingAddress->setShippingMethod($shippingRateCode);
+                        $shippingAddress->setCollectShippingRates(true);
                         $code = $shippingRateCode;
                         Mage::log("PayPal Express: Successfully set shipping method: '{$code}'", 
+                                 null, 'paypal_shipping.log');
+                        
+                        // Force recollection of totals to ensure shipping is calculated
+                        $quote->setTotalsCollectedFlag(false);
+                        $quote->collectTotals();
+                        
+                        Mage::log("PayPal Express: Recollected totals after setting shipping method", 
                                  null, 'paypal_shipping.log');
                     } else {
                         // Only try matching if we don't have a valid mapped code
@@ -1153,6 +1161,19 @@ class Mage_Paypal_Model_Express_Checkout
     {
         // Trim the input to handle spacing issues
         $cleanTitle = trim($cleanTitle);
+        
+        // Check if PayPal returned a concatenated value like "tablerate_bestway Standard Shipping"
+        // This happens when PayPal concatenates the code and label
+        if (strpos($cleanTitle, ' ') !== false && strpos($cleanTitle, '_') !== false) {
+            // Extract just the method code (first part before space)
+            $parts = explode(' ', $cleanTitle);
+            if (count($parts) > 1 && strpos($parts[0], '_') !== false) {
+                $methodCode = $parts[0];
+                Mage::log("PayPal Express: Extracted method code '{$methodCode}' from concatenated value '{$cleanTitle}'", 
+                         null, 'paypal_shipping.log');
+                return $methodCode;
+            }
+        }
         
         // Try to get mapping from quote payment additional information first
         $payment = $this->_quote->getPayment();
