@@ -346,6 +346,12 @@ Varien.searchForm.prototype = {
     },
 
     initAutocomplete : function(url, destinationElement){
+        // Check if destination element exists
+        if (!$(destinationElement)) {
+            console.warn('Autocomplete destination element not found:', destinationElement);
+            return;
+        }
+  
         new Ajax.Autocompleter(
             this.field,
             destinationElement,
@@ -365,7 +371,6 @@ Varien.searchForm.prototype = {
                     }
                     Effect.Appear(update,{duration:0});
                 }
-
             }
         );
     },
