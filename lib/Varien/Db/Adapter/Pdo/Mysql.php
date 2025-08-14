@@ -2456,7 +2456,13 @@ class Varien_Db_Adapter_Pdo_Mysql extends Zend_Db_Adapter_Pdo_Mysql implements V
         }
 
         if (empty($ddlType) || !isset($this->_ddlColumnTypes[$ddlType])) {
-            throw new Zend_Db_Exception('Invalid column definition data');
+            $debugInfo = sprintf(
+                'Invalid column definition data - DDL Type: %s, Options: %s, Available Types: %s',
+                var_export($ddlType, true),
+                var_export($options, true),
+                implode(', ', array_keys($this->_ddlColumnTypes))
+            );
+            throw new Zend_Db_Exception($debugInfo);
         }
 
         // column size
