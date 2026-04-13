@@ -231,7 +231,16 @@ class Varien_Db_Adapter_Pdo_Mysql extends Zend_Db_Adapter_Pdo_Mysql implements V
     {
         if ($this->_transactionLevel === 0) {
             $this->_debugTimer();
-            parent::beginTransaction();
+            try {
+                parent::beginTransaction();
+            } catch (Exception $e) {
+                if ($this->_isConnectionLostException($e)) {
+                    $this->_reconnect();
+                    parent::beginTransaction();
+                } else {
+                    throw $e;
+                }
+            }
             $this->_debugStat(self::DEBUG_TRANSACTION, 'BEGIN');
         }
         ++$this->_transactionLevel;
@@ -362,6 +371,32 @@ class Varien_Db_Adapter_Pdo_Mysql extends Zend_Db_Adapter_Pdo_Mysql implements V
     }
 
     /**
+     * Force reconnect to the database by closing the existing connection
+     * and establishing a new one. Used to recover from "MySQL server has gone away" (2006)
+     * and "Lost connection" (2013) errors.
+     *
+     * @return void
+     */
+    protected function _reconnect()
+    {
+        $this->_connection = null;
+        $this->_connect();
+    }
+
+    /**
+     * Check if an exception is a MySQL connection loss error (2006 or 2013).
+     *
+     * @param Exception $e
+     * @return bool
+     */
+    protected function _isConnectionLostException(Exception $e)
+    {
+        $message = $e->getMessage();
+        return strpos($message, '2006 MySQL server has gone away') !== false
+            || strpos($message, '2013 Lost connection to MySQL server') !== false;
+    }
+
+    /**
      * Creates a PDO object and connects to the database.
      *
      * @throws Zend_Db_Adapter_Exception
@@ -419,7 +454,6 @@ class Varien_Db_Adapter_Pdo_Mysql extends Zend_Db_Adapter_Pdo_Mysql implements V
      */
     public function raw_query($sql)
     {
-        $lostConnectionMessage = 'SQLSTATE[HY000]: General error: 2013 Lost connection to MySQL server during query';
         $tries = 0;
         do {
             $retry = false;
@@ -433,8 +467,9 @@ class Varien_Db_Adapter_Pdo_Mysql extends Zend_Db_Adapter_Pdo_Mysql implements V
                         $e = new PDOException($e->getMessage(), $e->getCode());
                     }
                 }
-                // Check to reconnect
-                if ($tries < 10 && $e->getMessage() == $lostConnectionMessage) {
+                // Check to reconnect on connection loss (2006 or 2013)
+                if ($tries < 10 && $this->_isConnectionLostException($e)) {
+                    $this->_reconnect();
                     $retry = true;
                     $tries++;
                 } else {
@@ -509,8 +544,14 @@ class Varien_Db_Adapter_Pdo_Mysql extends Zend_Db_Adapter_Pdo_Mysql implements V
         } catch (Exception $e) {
             $this->_debugStat(self::DEBUG_QUERY, $sql, $bind);
 
+            // Reconnect on "MySQL server has gone away" or "Lost connection" — but only outside transactions
+            if ($this->_transactionLevel === 0 && $this->_isConnectionLostException($e)) {
+                $this->_reconnect();
+                $this->_prepareQuery($sql, $bind);
+                $result = parent::query($sql, $bind);
+            }
             // Detect implicit rollback - MySQL SQLSTATE: ER_LOCK_WAIT_TIMEOUT or ER_LOCK_DEADLOCK
-            if( $this->_transactionLevel > 0
+            elseif( $this->_transactionLevel > 0
                 && $e->getPrevious() && isset($e->getPrevious()->errorInfo[1])
                 && in_array($e->getPrevious()->errorInfo[1], [1205, 1213])
             ) {
@@ -519,9 +560,9 @@ class Varien_Db_Adapter_Pdo_Mysql extends Zend_Db_Adapter_Pdo_Mysql implements V
                 }
                 $this->_transactionLevel = 1; // Deadlock rolls back entire transaction
                 $this->rollBack();
+            } else {
+                $this->_debugException($e);
             }
-
-            $this->_debugException($e);
         }
         $this->_debugStat(self::DEBUG_QUERY, $sql, $bind, $result);
         return $result;
