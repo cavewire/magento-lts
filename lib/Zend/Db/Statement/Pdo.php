@@ -224,10 +224,19 @@ class Zend_Db_Statement_Pdo extends Zend_Db_Statement implements IteratorAggrega
     public function _execute(array $params = null)
     {
         try {
+            // PDO emits a non-actionable PHP Warning ("Packets out of order …")
+            // before throwing PDOException when MySQL has dropped a stale
+            // pooled connection (wait_timeout). The exception path below is
+            // already handled by Varien_Db_Adapter_Pdo_Mysql::raw_query()
+            // which detects "MySQL server has gone away" (errno 2006/2013)
+            // and reconnects transparently — so the warning is just noise
+            // that pollutes var/log/system.log every cron tick. Suppress
+            // with @ so we keep the meaningful exception flow intact while
+            // muting the scary-looking but harmless warning.
             if ($params !== null) {
-                return $this->_stmt->execute($params);
+                return @$this->_stmt->execute($params);
             } else {
-                return $this->_stmt->execute();
+                return @$this->_stmt->execute();
             }
         } catch (PDOException $e) {
             #require_once 'Zend/Db/Statement/Exception.php';
