@@ -560,6 +560,15 @@ class Varien_Db_Adapter_Pdo_Mysql extends Zend_Db_Adapter_Pdo_Mysql implements V
                 }
                 $this->_transactionLevel = 1; // Deadlock rolls back entire transaction
                 $this->rollBack();
+                // The statement did NOT execute. Without a rethrow this method
+                // falls through and returns null, and every caller that does
+                // $stmt->rowCount() (insert, insertOnDuplicate, update, ...)
+                // fatals with "Call to a member function rowCount() on null".
+                // Propagate the real deadlock/lock-wait error instead; the
+                // transaction state is already synced by the rollBack() above,
+                // and a later rollBack() from a caller's catch is a no-op at
+                // transaction level 0.
+                $this->_debugException($e);
             } else {
                 $this->_debugException($e);
             }
