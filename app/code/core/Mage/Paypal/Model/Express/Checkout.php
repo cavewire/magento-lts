@@ -369,11 +369,16 @@ class Mage_Paypal_Model_Express_Checkout
                 
                 // Provide a single placeholder option to enable callbacks
                 // Must be default to satisfy PayPal's requirement, callbacks will provide real options
+                // Its amount must equal SHIPPINGAMT, else PayPal refuses with #11826
+                // whenever the cart already carries a paid shipping method.
+                $placeholderTotals = $paypalCart->getTotals();
                 $placeholderOption = new Varien_Object(array(
                     'is_default' => true, // Required by PayPal
                     'name'       => '', // Empty to minimize display
                     'code'       => 'callback_placeholder',
-                    'amount'     => 0.00,
+                    'amount'     => isset($placeholderTotals[Mage_Paypal_Model_Cart::TOTAL_SHIPPING])
+                        ? (float) $placeholderTotals[Mage_Paypal_Model_Cart::TOTAL_SHIPPING]
+                        : 0.00,
                 ));
                 
                 // Get the secure base URL and build callback URL
